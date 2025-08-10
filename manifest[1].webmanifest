@@ -1,0 +1,9 @@
+{
+  "name": "Martin's Musical Planetary Harmonics",
+  "short_name": "Harmonics",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0f1b",
+  "theme_color": "#0a0f1b",
+  "icons": []
+}
