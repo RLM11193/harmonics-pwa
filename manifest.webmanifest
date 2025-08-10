@@ -3,8 +3,8 @@
   "short_name": "Harmonics",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#00afib",
-  "theme_color": "#00afib",
+  "background_color": "#00af1b",
+  "theme_color": "#00af1b",
   "icons": [
     {
       "src": "icons/icon-192.png",
