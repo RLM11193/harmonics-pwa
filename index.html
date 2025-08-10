@@ -292,6 +292,32 @@ document.getElementById('pid_clear').addEventListener('click', ()=>{
 });
 
 (function(){ const now=new Date(); document.getElementById('date').value=now.toISOString().slice(0,10); const hh=String(now.getHours()).padStart(2,'0'); const mm=String(now.getMinutes()).padStart(2,'0'); document.getElementById('time').value=`${hh}:${mm}`; calculate(); sq9(); })();
+</script><script>
+/* --- Prefetch & cache Swiss Ephemeris files for offline use --- */
+(async () => {
+  const EPHE_FILES = [
+    'ephe/semo_18.se1',  // modern (1800–2399) - planets & main asteroids
+    'ephe/seas_18.se1',  // same/aux set A
+    'ephe/sepl_18.se1'   // same/aux set L
+  ];
+  const CACHE_NAME = 'ephe-v1';
+  const cache = await caches.open(CACHE_NAME);
+
+  for (const url of EPHE_FILES) {
+    try {
+      const res = await fetch(url, { cache: 'reload' });
+      if (res.ok) await cache.put(new Request(url), res.clone());
+    } catch (err) {
+      console.warn('Ephemeris prefetch failed:', url, err);
+    }
+  }
+
+  // Helper so app code can read a file later: await window.getEphemeris('semo_18.se1')
+  window.getEphemeris = async (fileName) => {
+    const res = await (await caches.open(CACHE_NAME)).match('ephe/' + fileName);
+    return res ? await res.text() : null;
+  };
+})();
 </script>
 </body>
 </html>
