@@ -129,6 +129,19 @@
     <div class="kvs" style="margin-top:8px">
       <div class="kv"><div class="k">θ (A→P)</div><div class="v" id="sq9Angle">—</div></div>
     </div>
+<div class="kv">
+  <label for="kValue">K Value</label>
+  <select id="kValue">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+  <div class="kv"><div class="k">Selected K</div><div class="v" id="sqKSel">0</div></div>
+<div class="kv"><div class="k">Price @ K</div><div class="v" id="sqPriceSel">—</div></div>
+<div class="kv"><div class="k">Bars @ K</div><div class="v" id="sqBarsSel">—</div></div>
+</div>
     <div class="tbl" id="targetsTbl" style="margin-top:8px">
       <div class="hdr">k</div><div class="hdr">Projected Price</div>
     </div>
@@ -293,6 +306,58 @@ document.getElementById('pid_clear').addEventListener('click', ()=>{
 
 (function(){ const now=new Date(); document.getElementById('date').value=now.toISOString().slice(0,10); const hh=String(now.getHours()).padStart(2,'0'); const mm=String(now.getMinutes()).padStart(2,'0'); document.getElementById('time').value=`${hh}:${mm}`; calculate(); sq9(); })();
 </script><script>
+  <script>
+// --- K selector wiring (reads existing tables, no retyping) ---
+function updateSelectedK() {
+  const kSel = document.getElementById('kValue');
+  const k = parseInt(kSel.value || '0', 10);
+  // Show selected K
+  const kOut = document.getElementById('sqKSel');
+  if (kOut) kOut.textContent = k;
+
+  // Grab the price at K from the existing "targetsTbl"
+  const priceOut = document.getElementById('sqPriceSel');
+  const priceTbl = document.getElementById('targetsTbl');
+  if (priceOut) {
+    let text = '—';
+    if (priceTbl && priceTbl.rows && priceTbl.rows[k + 1] && priceTbl.rows[k + 1].cells[1]) {
+      text = priceTbl.rows[k + 1].cells[1].textContent.trim();
+    }
+    priceOut.textContent = text;
+  }
+
+  // Grab the bars/time at K from an optional time table (id="timeTargetsTbl" if present)
+  const barsOut = document.getElementById('sqBarsSel');
+  // If you already have a time-table, keep id="timeTargetsTbl". If not, barsOut will remain "—"
+  const barsTbl = document.getElementById('timeTargetsTbl');
+  if (barsOut) {
+    let text = '—';
+    if (barsTbl && barsTbl.rows && barsTbl.rows[k + 1] && barsTbl.rows[k + 1].cells[1]) {
+      text = barsTbl.rows[k + 1].cells[1].textContent.trim();
+    }
+    barsOut.textContent = text;
+  }
+}
+
+// Re-run after any input changes or when tables refresh
+function hookKUpdates() {
+  const ids = ['anchor','current','sqDir','targetAngle','kValue'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateSelectedK);
+    if (el && el.tagName === 'SELECT') el.addEventListener('change', updateSelectedK);
+  });
+  // Also expose a safe global so other code can call this after it rebuilds tables
+  window.__updateSelectedK = updateSelectedK;
+}
+
+// Try to hook now, and again after a short delay (covers table rebuilds)
+document.addEventListener('DOMContentLoaded', () => {
+  hookKUpdates();
+  setTimeout(updateSelectedK, 100);  // first pass
+  setTimeout(updateSelectedK, 400);  // after tables render
+});
+</script>
 /* --- Prefetch & cache Swiss Ephemeris files for offline use --- */
 (async () => {
   const EPHE_FILES = [
