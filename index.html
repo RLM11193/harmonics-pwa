@@ -148,7 +148,125 @@
   </section>
 
 </div>
+<script>
+/* === Square-of-Nine: auto-calc price & time for selected K, and build time table === */
+(function () {
+  // DOM helpers
+  const $ = (id) => document.getElementById(id);
 
+  const elK       = $('kValue');
+  const elSqTheta = $('sqAngle');     // θ (A→P) display div
+  const elPriceK  = $('sqPriceSel');  // "Price @ K"
+  const elBarsK   = $('sqBarsSel');   // "Bars @ K"
+  const timeTbl   = $('timeTbl');     // container we just added
+
+  // Inputs from the top section (already typed once)
+  const elAnchor  = $('anchor');      // Anchor Price (A)
+  const elCurrent = $('current');     // Current Price (P)
+  const elTarget  = $('targetAngle'); // Target Angle ° from Anchor
+  const elDir     = $('sq9Dir');      // up/down selector
+
+  // Utility: sqrt, sqr, and degree helpers
+  const rt  = (x) => Math.sqrt(Math.max(0, Number(x)));
+  const sq  = (x) => x*x;
+  const mod = (a,m)=>((a % m)+m)%m;
+
+  // Compute θ (A→P) on the Square-of-Nine
+  function theta_AP(A, P, dir /* "up"|"down" */) {
+    // classic Sq9 rotation from A to P; use monotonic direction
+    // θ ≈ 180 * ( √P - √A )
+    const d = 180 * (rt(P) - rt(A));
+    return dir === 'down' ? mod(-d, 360) : mod(d, 360);
+  }
+
+  // Given K, compute the **price** that sits at (θ_target + 360*K) from A
+  function priceAtK(A, thetaTarget, K, dir) {
+    // √P_target = √A + (θ_target + 360K)/180  (with sign by direction)
+    const s = (thetaTarget + 360*K) / 180;
+    const root = dir === 'down' ? (rt(A) - s) : (rt(A) + s);
+    return sq(root);
+  }
+
+  // Given K, compute the **bars** (time) at same angular step on Sq9
+  function barsAtK(barsSoFar, thetaToGoDeg, K) {
+    // Δ√Bars_needed = (θ_gap + 360K)/180; Bars_target = ( √Bars_so_far + Δ )^2
+    const deltaRoot = (thetaToGoDeg + 360*K) / 180;
+    return sq(rt(barsSoFar) + deltaRoot);
+  }
+
+  // Build the time targets table rows for K = 0..4 (you can change the range)
+  function renderTimeTable(A, P, thetaTarget, dir, barsSoFar, thetaGap) {
+    if (!timeTbl) return;
+    // clear old rows (keep header)
+    timeTbl.querySelectorAll('.row').forEach(r => r.remove());
+
+    for (let K = 0; K <= 4; K++) {
+      const barsTarget = barsAtK(barsSoFar, thetaGap, K);
+
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="k">${K}</div>
+        <div class="v">${barsTarget.toFixed(4)}</div>
+      `;
+      timeTbl.appendChild(row);
+    }
+  }
+
+  // Main update: called whenever K changes or the top inputs change
+  function updateSq9K() {
+    const A   = Number(elAnchor?.value || 0);
+    const P   = Number(elCurrent?.value || 0);
+    const K   = Number(elK?.value || 0);
+    const tgt = Number(elTarget?.value || 0);
+    const dir = (elDir?.value || 'up').toLowerCase(); // "up" or "down"
+
+    if (!A || !P || isNaN(K) || isNaN(tgt)) return;
+
+    // current θ(A→P)
+    const thetaNow = theta_AP(A, P, dir);
+    if (elSqTheta) elSqTheta.textContent = `${thetaNow.toFixed(4)}°`;
+
+    // angular gap to target (shortest forward in chosen direction)
+    const thetaGap = mod((tgt - thetaNow), 360); // 0..359.999
+
+    // Price @ K
+    const priceTarget = priceAtK(A, thetaNow + thetaGap, K, dir);
+    if (elPriceK) elPriceK.textContent = priceTarget.toFixed(4);
+
+    // Bars @ K — uses Δ√Bars mapping like price (needs bars from the top section)
+    // We’ll read bars from the already-computed ΔT (bars) absolute value if present,
+    // else default to 0. If you have a specific "barsSoFar" input, point to it here.
+    const barsSoFarEl = document.getElementById('deltaT'); // existing ΔT (bars) box
+    const barsSoFar = Math.abs(Number(barsSoFarEl?.textContent || barsSoFarEl?.value || 0));
+
+    const barsTarget = barsAtK(barsSoFar, thetaGap, K);
+    if (elBarsK) elBarsK.textContent = barsTarget.toFixed(4);
+
+    // Build time table for K = 0..4
+    renderTimeTable(A, P, tgt, dir, barsSoFar, thetaGap);
+  }
+
+  // Auto-fill Square-of-Nine inputs whenever the top section changes
+  function autofillSq9() {
+    // If you want true “no retyping”, you can copy top inputs into the So9 fields here.
+    // (Your elements already read directly, so this is just a hook if needed.)
+    updateSq9K();
+  }
+
+  // Listeners
+  ['anchor','current','targetAngle','sq9Dir','kValue'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateSq9K);
+    if (el) el.addEventListener('change', updateSq9K);
+  });
+
+  // Kick once on load
+  window.addEventListener('load', () => {
+    setTimeout(updateSq9K, 0);
+  });
+})();
+</script>
 <script>
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }
 const deg2rad=d=>(d*Math.PI)/180, rad2deg=r=>(r*180)/Math.PI, mod360=x=>((x%360)+360)%360;
