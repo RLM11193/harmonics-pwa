@@ -1,10 +1,11 @@
 {
-  "name": "Martin's Musical Planetary Harmonics",
-  "short_name": "Harmonics",
+  "name": "Gann Master Wheel",
+  "short_name": "Gann Wheel",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#00af1b",
-  "theme_color": "#00af1b",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "description": "Gann Master Wheel with planetary harmonics and square-out calculations.",
   "icons": [
     {
       "src": "icons/icon-192.png",
