@@ -3,505 +3,435 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Martin's Musical Planetary Harmonics — v2.6c ✅ (PWA)</title>
+<title>Gann Master Wheel</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0a0f1b">
+<meta name="theme-color" content="#0b1020">
 <style>
-  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; background:#0a0f1b; color:#edf3ff; margin:0; padding:16px; }
-  .wrap { max-width: 860px; margin: 0 auto; }
-  .banner { text-align:center; font-weight: 800; color:#00cc44; font-size: 1.1rem; margin-bottom: 8px; }
-  .panel { background:#0f1626; border:1px solid #1a2740; border-radius:16px; padding:14px; margin-top:12px; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .col { display:flex; flex-direction:column; gap:6px; }
-  label { font-size:12px; color:#cfe0ff; }
-  input, select { width:100%; background:#0b1220; color:#fff; border:1px solid #1a2740; border-radius:14px; padding:12px 14px; font-size:16px; outline:none; }
-  input:focus,select:focus{ border-color:#3aa0ff; box-shadow:0 0 0 3px rgba(58,160,255,.15); }
-  .kvs{ display:grid; grid-template-columns:1fr; gap:8px; }
-  .kv{ display:flex; justify-content:space-between; gap:12px; background:#0b1220; border:1px solid #1a2740; padding:12px 14px; border-radius:12px; }
-  .k{ color:#8ea0bd; font-size:13px; }
-  .v{ font-weight:700; font-size:16px; }
-  .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-  button{ flex:1; background:#162544; border:1px solid #1a2740; color:#fff; padding:14px 16px; border-radius:14px; cursor:pointer; font-weight:700; font-size:16px; }
-  button:active{ transform:scale(.98); }
-  .hdr{ background:#0a1426; color:#cfe0ff; font-weight:700; padding:8px 10px; border-radius:10px; }
-  .tbl{ display:grid; grid-template-columns:140px 1fr; gap:8px; margin-top:8px; }
-  .tbl > div{ padding:8px 10px; background:#0b1220; border:1px solid #1a2740; border-radius:10px; font-size:14px; }
-  .small{ font-size:12px; color:#8ea0bd; }
+  :root{color-scheme:dark light}
+  body{margin:0;background:#0b1020;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
+  header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0f172a;color:#fff;position:sticky;top:0;z-index:5}
+  h1{font-size:1.1rem;margin:0}
+  main{padding:12px;max-width:900px;margin:0 auto}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  label{font-size:.8rem;opacity:.85;margin-bottom:4px;display:block}
+  input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1020;color:#e5e7eb}
+  button{background:#2563eb;border:none;font-weight:600}
+  .muted{opacity:.75;font-size:.9rem}
+  .status{padding:10px;border-radius:10px;font-weight:700;text-align:center}
+  .pass{background:#064e3b;color:#d1fae5;border:1px solid #065f46}
+  .fail{background:#7f1d1d;color:#fee2e2;border:1px solid #991b1b}
+  .toggle-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .toggle-row > * {flex:1}
+  .controls{display:flex;gap:6px;flex-wrap:wrap}
+  .controls button{flex:1}
+  canvas{display:block;margin:10px auto;background:radial-gradient(1200px 400px at 50% 0%, #0b1020, #060912);border-radius:50%;}
+  .overlay{position:absolute;left:0;right:0;text-align:center;margin-top:-26px;font-size:.9rem;opacity:.9}
+  .fs-teach{position:fixed;inset:0;background:#000c;backdrop-filter:blur(2px);display:none;z-index:50;flex-direction:column}
+  .fs-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
+  .fs-canvas{flex:1;display:flex;align-items:center;justify-content:center}
+  .pill{padding:6px 10px;border:1px solid #334155;border-radius:999px;background:#0b1020}
+  .small{font-size:.8rem}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="banner">Martin's Musical Planetary Harmonics — v2.6c ✅</div>
+<header>
+  <h1>Gann Master Wheel</h1>
+  <div class="toggle-row" style="max-width:420px">
+    <button id="teachBtn" class="pill">Teaching Mode</button>
+    <button id="soundBtn" class="pill">Sound: Off</button>
+  </div>
+</header>
 
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Price & Time</h3>
+<main>
+  <div class="card">
     <div class="row">
-      <div class="col"><label>Low</label><input id="low" inputmode="decimal" value="3267.89"></div>
-      <div class="col"><label>High / Current</label><input id="high" inputmode="decimal" value="3407.35"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col"><label>Bars (ΔT low→high)</label><input id="bars" inputmode="numeric" value="140"></div>
-      <div class="col"><label>Price Radius Rₚ</label><input id="harmPrice" inputmode="decimal" value="144"><div class="small">Default 144</div></div>
-    </div>
-    <div class="col" style="margin-top:10px">
-      <label>Time Radius Rₜ</label><input id="harmTime" inputmode="decimal" value="225"><div class="small">Default 225</div>
-    </div>
-    <div class="small" style="margin-top:8px">√Δ = √High − √Low → θₚ = (√Δ × 180°) mod 360°.  Span₁₄₄ = √Δ×144.  ΔP(harm) = Rₚ×sin(φ).  θₜ=(√Bars×180°) mod 360°.  ΔT=Rₜ×cos(φ).</div>
-  </section>
-
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Sky Scan (Sidereal)</h3>
-    <div class="row">
-      <div class="col"><label>Mode</label>
-        <select id="skyMode"><option value="offline">Offline (approx)</option><option value="online">Online (API)</option></select>
+      <div>
+        <label>High (P_high)</label>
+        <input id="pHigh" type="number" step="0.0001" placeholder="e.g., 3438.84">
       </div>
-      <div class="col"><label>Ayanamsha</label>
-        <select id="ayan"><option value="lahiri" selected>Lahiri</option></select>
+      <div>
+        <label>Low (P_low)</label>
+        <input id="pLow" type="number" step="0.0001" placeholder="e.g., 3295.00">
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col"><label>Date</label><input id="date" type="date"></div>
-      <div class="col"><label>Time (local)</label><input id="time" type="time" step="60"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col"><label>Latitude</label><input id="lat" inputmode="decimal" value="38.84"></div>
-      <div class="col"><label>Longitude</label><input id="lon" inputmode="decimal" value="-106.13"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col"><label>API Base URL (if Online)</label><input id="apiBase" placeholder="https://api.astronomyapi.com/api/v2/bodies/positions"></div>
-      <div class="col"><label>API Key (optional)</label><input id="apiKey" placeholder="paste token"></div>
-    </div>
-    <div class="btns">
-      <button id="scanBtn">Scan Sky</button>
-      <button id="nowBtn">Now (Here)</button>
-    </div>
-    <div class="tbl" id="skyTbl" style="margin-top:10px">
-      <div class="hdr">Body</div><div class="hdr">Sidereal Longitude</div>
-    </div>
-    <div class="small" id="skyNote" style="margin-top:6px"></div>
-  </section>
-
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Planet ID Helper</h3>
-    <div class="small" style="margin-bottom:8px">α = arcsin(|ΔP|/Rₚ); test {α,180−α,180+α,360−α} against scanned bodies.</div>
-    <div class="btns"><button id="pid_calc">Scan Angles</button><button id="pid_apply">Use Best Match → Apply</button><button id="pid_clear">Clear Lock</button></div>
-    <div class="kvs" style="margin-top:10px">
-      <div class="kv"><div class="k">Best Matches</div><div class="v" id="pid_matches">—</div></div>
-      <div class="kv"><div class="k">Applied</div><div class="v" id="pid_applied">—</div></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Price Projections</h3>
-    <div class="small" id="controllerBadge" style="margin-top:6px;">Controller: —</div>
-    <div class="kvs">
-      <div class="kv"><div class="k">√High</div><div class="v" id="sqrtHigh">—</div></div>
-      <div class="kv"><div class="k">√Low</div><div class="v" id="sqrtLow">—</div></div>
-      <div class="kv"><div class="k">√Δ (√H−√L)</div><div class="v" id="sqrtDelta">—</div></div>
-      <div class="kv"><div class="k">θₚ = √Δ×180°</div><div class="v" id="thetaPrice">—</div></div>
-      <div class="kv"><div class="k">Span₁₄₄ = √Δ×144</div><div class="v" id="span144">—</div></div>
-      <div class="kv"><div class="k">ΔP (harmonic)</div><div class="v" id="deltaP">—</div></div>
-      <div class="kv"><div class="k">Target ↑ from Low</div><div class="v" id="upFromLow">—</div></div>
-      <div class="kv"><div class="k">Target ↓ from High</div><div class="v" id="downFromHigh">—</div></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Time Bars</h3>
-    <div class="kvs">
-      <div class="kv"><div class="k">θₜ</div><div class="v" id="thetaTime">—</div></div>
-      <div class="kv"><div class="k">ΔT (bars)</div><div class="v" id="deltaT">—</div></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h3 style="margin:0 0 10px 0">Square-of-Nine</h3>
-    <div class="row">
-      <div class="col"><label>Anchor Price (A)</label><input id="anchor" inputmode="decimal" value="3267.89"></div>
-      <div class="col"><label>Current Price (P)</label><input id="current" inputmode="decimal" value="3407.35"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div class="col"><label>Direction</label>
-        <select id="sq9Dir"><option value="up">Up from Low</option><option value="down">Down from High</option></select>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Bars (ΔT)</label>
+        <input id="bars" type="number" step="1" placeholder="e.g., 66">
       </div>
-      <div class="col"><label>Target Angle (°) from Anchor</label><input id="targetAngle" inputmode="decimal" value="90"></div>
+      <div>
+        <label>k (harmonic divisor)</label>
+        <input id="k" type="number" value="12">
+      </div>
     </div>
-    <div class="kvs" style="margin-top:8px">
-      <div class="kv"><div class="k">θ (A→P)</div><div class="v" id="sq9Angle">—</div></div>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Price Harmonic Rₚ</label>
+        <input id="hp" type="number" value="144">
+      </div>
+      <div>
+        <label>Time Harmonic Rₜ</label>
+        <input id="ht" type="number" value="225">
+      </div>
     </div>
-<div class="kv">
-  <label for="kValue">K Value</label>
-  <select id="kValue">
-    <option value="0">0</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
-  <div class="kv"><div class="k">Selected K</div><div class="v" id="sqKSel">0</div></div>
-<div class="kv"><div class="k">Price @ K</div><div class="v" id="sqPriceSel">—</div></div>
-<div class="kv"><div class="k">Bars @ K</div><div class="v" id="sqBarsSel">—</div></div>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Price Tol (°)</label>
+        <input id="priceTol" type="number" value="3">
+      </div>
+      <div>
+        <label>Time Tol (°)</label>
+        <input id="timeTol" type="number" value="3">
+      </div>
+    </div>
+
+    <div class="controls" style="margin-top:8px">
+      <button id="scanBtn">Scan & Calculate</button>
+      <button id="clearBtn">Clear</button>
+    </div>
+    <div class="muted small" style="margin-top:6px">
+      ΔP = Rₚ × sin(((√P_high − √P_low) × 180°) → snapped), ΔT = Rₜ × cos((√bars × 180°) → snapped). Square-of-9: (√P ± rotations)².
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toggle-row">
+      <div class="pill small" id="dateBar">
+        <button id="minus30">-30d</button><button id="minus7">-7d</button><button id="minus1">-1d</button>
+        <input id="datePick" type="date" style="width:9.5rem;display:inline-block">
+        <button id="plus1">+1d</button><button id="plus7">+7d</button><button id="plus30">+30d</button>
+      </div>
+      <select id="jumpCycle" class="pill small" style="max-width:160px">
+        <option value="">Jump cycle…</option>
+        <option value="90">+90d</option>
+        <option value="144">+144d</option>
+        <option value="225">+225d</option>
+      </select>
+      <select id="mode" class="pill small" style="max-width:160px">
+        <option value="auto">Auto Detect</option>
+        <option value="single">Single Planet</option>
+        <option value="beat">Two-Planet Beat</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="status" class="status">Awaiting input…</div>
+  </div>
+
+  <div class="card">
+    <canvas id="wheel" width="340" height="340"></canvas>
+    <div class="overlay" id="overlayText"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px 0">Results</h3>
+    <pre id="out">Enter values and tap Scan & Calculate.</pre>
+  </div>
+</main>
+
+<!-- Full-screen Teaching Mode -->
+<div class="fs-teach" id="fs">
+  <div class="fs-header">
+    <div class="pill">Teaching Mode</div>
+    <div class="pill" id="fsClose">Close</div>
+  </div>
+  <div class="fs-canvas">
+    <canvas id="fsWheel" width="600" height="600"></canvas>
+  </div>
+  <div class="overlay" id="fsOverlay"></div>
 </div>
-    <div class="tbl" id="targetsTbl" style="margin-top:8px">
-      <div class="hdr">k</div><div class="hdr">Projected Price</div>
-    </div>
-  </section>
 
-</div>
 <script>
-/* === Square-of-Nine: auto-calc price & time for selected K, and build time table === */
-(function () {
-  // DOM helpers
-  const $ = (id) => document.getElementById(id);
+// --- Utilities ---
+const $ = (id)=>document.getElementById(id);
+const mod360 = d => ((d%360)+360)%360;
+const angDiff = (a,b)=>{let d=Math.abs(mod360(a)-mod360(b));return d>180?360-d:d};
+const fmt = n => Number(n).toLocaleString(undefined,{maximumFractionDigits:8});
+const todayISO = ()=> new Date().toISOString().slice(0,10);
 
-  const elK       = $('kValue');
-  const elSqTheta = $('sqAngle');     // θ (A→P) display div
-  const elPriceK  = $('sqPriceSel');  // "Price @ K"
-  const elBarsK   = $('sqBarsSel');   // "Bars @ K"
-  const timeTbl   = $('timeTbl');     // container we just added
-
-  // Inputs from the top section (already typed once)
-  const elAnchor  = $('anchor');      // Anchor Price (A)
-  const elCurrent = $('current');     // Current Price (P)
-  const elTarget  = $('targetAngle'); // Target Angle ° from Anchor
-  const elDir     = $('sq9Dir');      // up/down selector
-
-  // Utility: sqrt, sqr, and degree helpers
-  const rt  = (x) => Math.sqrt(Math.max(0, Number(x)));
-  const sq  = (x) => x*x;
-  const mod = (a,m)=>((a % m)+m)%m;
-
-  // Compute θ (A→P) on the Square-of-Nine
-  function theta_AP(A, P, dir /* "up"|"down" */) {
-    // classic Sq9 rotation from A to P; use monotonic direction
-    // θ ≈ 180 * ( √P - √A )
-    const d = 180 * (rt(P) - rt(A));
-    return dir === 'down' ? mod(-d, 360) : mod(d, 360);
+// --- Sound (simple) ---
+let audioCtx=null, humOsc=null;
+$('soundBtn').addEventListener('click', ()=>{
+  if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
+  if(humOsc){
+    humOsc.stop(); humOsc.disconnect(); humOsc=null; $('soundBtn').textContent='Sound: Off'; return;
   }
-
-  // Given K, compute the **price** that sits at (θ_target + 360*K) from A
-  function priceAtK(A, thetaTarget, K, dir) {
-    // √P_target = √A + (θ_target + 360K)/180  (with sign by direction)
-    const s = (thetaTarget + 360*K) / 180;
-    const root = dir === 'down' ? (rt(A) - s) : (rt(A) + s);
-    return sq(root);
-  }
-
-  // Given K, compute the **bars** (time) at same angular step on Sq9
-  function barsAtK(barsSoFar, thetaToGoDeg, K) {
-    // Δ√Bars_needed = (θ_gap + 360K)/180; Bars_target = ( √Bars_so_far + Δ )^2
-    const deltaRoot = (thetaToGoDeg + 360*K) / 180;
-    return sq(rt(barsSoFar) + deltaRoot);
-  }
-
-  // Build the time targets table rows for K = 0..4 (you can change the range)
-  function renderTimeTable(A, P, thetaTarget, dir, barsSoFar, thetaGap) {
-    if (!timeTbl) return;
-    // clear old rows (keep header)
-    timeTbl.querySelectorAll('.row').forEach(r => r.remove());
-
-    for (let K = 0; K <= 4; K++) {
-      const barsTarget = barsAtK(barsSoFar, thetaGap, K);
-
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `
-        <div class="k">${K}</div>
-        <div class="v">${barsTarget.toFixed(4)}</div>
-      `;
-      timeTbl.appendChild(row);
-    }
-  }
-
-  // Main update: called whenever K changes or the top inputs change
-  function updateSq9K() {
-    const A   = Number(elAnchor?.value || 0);
-    const P   = Number(elCurrent?.value || 0);
-    const K   = Number(elK?.value || 0);
-    const tgt = Number(elTarget?.value || 0);
-    const dir = (elDir?.value || 'up').toLowerCase(); // "up" or "down"
-
-    if (!A || !P || isNaN(K) || isNaN(tgt)) return;
-
-    // current θ(A→P)
-    const thetaNow = theta_AP(A, P, dir);
-    if (elSqTheta) elSqTheta.textContent = `${thetaNow.toFixed(4)}°`;
-
-    // angular gap to target (shortest forward in chosen direction)
-    const thetaGap = mod((tgt - thetaNow), 360); // 0..359.999
-
-    // Price @ K
-    const priceTarget = priceAtK(A, thetaNow + thetaGap, K, dir);
-    if (elPriceK) elPriceK.textContent = priceTarget.toFixed(4);
-
-    // Bars @ K — uses Δ√Bars mapping like price (needs bars from the top section)
-    // We’ll read bars from the already-computed ΔT (bars) absolute value if present,
-    // else default to 0. If you have a specific "barsSoFar" input, point to it here.
-    const barsSoFarEl = document.getElementById('deltaT'); // existing ΔT (bars) box
-    const barsSoFar = Math.abs(Number(barsSoFarEl?.textContent || barsSoFarEl?.value || 0));
-
-    const barsTarget = barsAtK(barsSoFar, thetaGap, K);
-    if (elBarsK) elBarsK.textContent = barsTarget.toFixed(4);
-
-    // Build time table for K = 0..4
-    renderTimeTable(A, P, tgt, dir, barsSoFar, thetaGap);
-  }
-
-  // Auto-fill Square-of-Nine inputs whenever the top section changes
-  function autofillSq9() {
-    // If you want true “no retyping”, you can copy top inputs into the So9 fields here.
-    // (Your elements already read directly, so this is just a hook if needed.)
-    updateSq9K();
-  }
-
-  // Listeners
-  ['anchor','current','targetAngle','sq9Dir','kValue'].forEach(id=>{
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', updateSq9K);
-    if (el) el.addEventListener('change', updateSq9K);
-  });
-
-  // Kick once on load
-  window.addEventListener('load', () => {
-    setTimeout(updateSq9K, 0);
-  });
-})();
-</script>
-<script>
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }
-const deg2rad=d=>(d*Math.PI)/180, rad2deg=r=>(r*180)/Math.PI, mod360=x=>((x%360)+360)%360;
-const sinDeg=d=>Math.sin(deg2rad(d)), cosDeg=d=>Math.cos(deg2rad(d));
-const r=(x,n=6)=>isFinite(x)?String(Math.round(x*10**n)/10**n):"—";
-const num=s=>{const v=parseFloat(String(s).replace(/,/g,'').trim());return Number.isFinite(v)?v:NaN};
-const el=id=>document.getElementById(id);
-let overrideAngle=null, lastBest=null;
-
-const ids=['low','high','bars','harmPrice','harmTime','anchor','current','targetAngle'];
-function values(){const v=Object.fromEntries(ids.map(id=>[id,el[id]?el[id].value:document.getElementById(id).value]));return{low:num(v.low),high:num(v.high),bars:num(v.bars),harmPrice:num(v.harmPrice),harmTime:num(v.harmTime),anchor:num(v.anchor),current:num(v.current),targetAngle:num(v.targetAngle)};}
-function calculate(){
-  const V=values();
-  let sqrtHigh=NaN,sqrtLow=NaN,sqrtDelta=NaN,thetaPrice=NaN,span144=NaN,dP=NaN,upFromLow=NaN,downFromHigh=NaN;
-  if(V.high>0&&V.low>0&&V.high!==V.low){
-    sqrtHigh=Math.sqrt(V.high);sqrtLow=Math.sqrt(V.low);sqrtDelta=sqrtHigh-sqrtLow;
-    thetaPrice=mod360(sqrtDelta*180);span144=sqrtDelta*144;
-    const radiusP=isFinite(V.harmPrice)?V.harmPrice:144;
-    const usedAngle=(overrideAngle!=null?overrideAngle:thetaPrice);
-    dP=radiusP*sinDeg(usedAngle);
-    upFromLow=V.low+dP;downFromHigh=V.high-dP;
-  }
-  let thetaTime=NaN,dT=NaN;
-  if(isFinite(V.bars)&&V.bars>=0){
-    thetaTime=mod360(Math.sqrt(V.bars)*180);
-    const radiusT=isFinite(V.harmTime)?V.harmTime:225;
-    const usedAngleT=(overrideAngle!=null?overrideAngle:thetaTime);
-    dT=radiusT*cosDeg(usedAngleT);
-  }
-  document.getElementById('sqrtHigh').textContent=r(sqrtHigh);document.getElementById('sqrtLow').textContent=r(sqrtLow);document.getElementById('sqrtDelta').textContent=r(sqrtDelta,6);
-  document.getElementById('thetaPrice').textContent=r(thetaPrice,4)+(isFinite(thetaPrice)?'°':'');document.getElementById('span144').textContent=r(span144,6);
-  document.getElementById('deltaP').textContent=r(dP,4);document.getElementById('upFromLow').textContent=r(upFromLow,4);document.getElementById('downFromHigh').textContent=r(downFromHigh,4);
-  document.getElementById('thetaTime').textContent=r(thetaTime,4)+(isFinite(thetaTime)?'°':'');document.getElementById('deltaT').textContent=r(dT,4);
+  humOsc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain(); gain.gain.value=0.02;
+  humOsc.type='sine'; humOsc.frequency.value=110; humOsc.connect(gain).connect(audioCtx.destination);
+  humOsc.start();
+  $('soundBtn').textContent='Sound: On';
+});
+function blip(){
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.type='triangle'; o.frequency.value=660; g.gain.value=0.1;
+  o.connect(g).connect(audioCtx.destination); o.start(); setTimeout(()=>{o.stop();},120);
 }
 
-function sq9(){
-  const V=values();let sq9Angle=NaN,rows=[];
-  if(V.anchor>0&&V.current>0){sq9Angle=mod360((Math.sqrt(V.current)-Math.sqrt(V.anchor))*180);}
-  const dir=document.getElementById('sq9Dir').value;
-  let t = num(document.getElementById('targetAngle').value); if(!isFinite(t)) t=0; if(dir==='down') t = (360 - t) % 360;
-  if(V.anchor>0){const sA=Math.sqrt(V.anchor);const ks=[0,1,2];
-    rows=ks.map(k=>{const sP=sA+(t/180)+2*k;return{k,price:sP*sP};});
-  }
-  document.getElementById('sq9Angle').textContent=r(sq9Angle,4)+(isFinite(sq9Angle)?'°':'');const tbl=document.getElementById('targetsTbl');while(tbl.children.length>2)tbl.removeChild(tbl.lastChild);
-  rows.forEach(row=>{const c1=document.createElement('div');c1.textContent=row.k;const c2=document.createElement('div');c2.textContent=r(row.price,4);tbl.appendChild(c1);tbl.appendChild(c2);});
-}
+// --- Haptics ---
+function haptic(ms=15){ if(navigator.vibrate) navigator.vibrate(ms); }
 
-function lahiriAyanamsha(date){const year=date.getUTCFullYear()+(date.getUTCMonth()+1-0.5)/12;const years=year-2000;const arcsec=23.853*3600+years*50.29;return arcsec/3600;}
-function julianDay(date){let Y=date.getUTCFullYear();let M=date.getUTCMonth()+1;const D=date.getUTCDate()+(date.getUTCHours()+(date.getUTCMinutes()/60))/24;if(M<=2){M+=12;Y-=1;}const A=Math.floor(Y/100);const B=2-A+Math.floor(A/4);return Math.floor(365.25*(Y+4716))+Math.floor(30.6001*(M+1))+D+B-1524.5;}
-function daysSinceJ2000(date){return julianDay(date)-2451545.0;}
-function sunLonApprox(date){const d=daysSinceJ2000(date);const L=280.460+0.9856474*d;const g=deg2rad(357.528+0.9856003*d);return mod360(L+1.915*Math.sin(g)+0.020*Math.sin(2*g));}
-function moonLonApprox(date){const d=daysSinceJ2000(date);return mod360(218.316+13.176396*d);} 
-function planetLinearLon(date,L0,rate){const d=daysSinceJ2000(date);return mod360(L0+rate*d);} 
-function nodeLonApprox(date){const d=daysSinceJ2000(date);const Omega=125.04452-0.0529538083*d;const rahu=mod360(Omega);return{rahu,ketu:mod360(rahu+180)};}
-function obliquity(date){const d=daysSinceJ2000(date);const T=d/36525;return 23.439291-0.0130042*T;}
-function gmst(date){const d=daysSinceJ2000(date);const T=d/36525;return mod360(280.46061837+360.98564736629*d+0.000387933*T*T-T*T*T/38710000);}
-function ascendant(dateUTC,lat,lon){const eps=deg2rad(obliquity(dateUTC));const phi=deg2rad(lat);const theta=deg2rad(mod360(gmst(dateUTC)+lon));const num=Math.sin(theta)*Math.cos(eps)-Math.tan(phi)*Math.sin(eps);const den=Math.cos(theta);return mod360(rad2deg(Math.atan2(num,den)));}
-function signString(deg){const s=['Ar','Ta','Ge','Cn','Le','Vi','Li','Sc','Sg','Cp','Aq','Pi'];const i=Math.floor(mod360(deg)/30);return `${r(mod360(deg),2)}° ${s[i]}`;}
-
-function nowLocalInit(){const now=new Date();document.getElementById('date').value=now.toISOString().slice(0,10);const hh=String(now.getHours()).padStart(2,'0');const mm=String(now.getMinutes()).padStart(2,'0');document.getElementById('time').value=`${hh}:${mm}`;}
-
-function skyScanOffline(local,lat,lon){const dateUTC=new Date(local.getTime()-local.getTimezoneOffset()*60000);const ay=lahiriAyanamsha(dateUTC);const toSid=lon=>mod360(lon-ay);
-  const sun=toSid(sunLonApprox(dateUTC)), moon=toSid(moonLonApprox(dateUTC));
-  const merc=toSid(planetLinearLon(dateUTC,252.250906,4.09233445));
-  const ven=toSid(planetLinearLon(dateUTC,181.979801,1.60213034));
-  const mars=toSid(planetLinearLon(dateUTC,355.433275,0.52402075));
-  const jup=toSid(planetLinearLon(dateUTC,34.351484,0.08308529));
-  const sat=toSid(planetLinearLon(dateUTC,50.077471,0.03344414));
-  const nodes=nodeLonApprox(dateUTC); const rahu=toSid(nodes.rahu), ketu=toSid(nodes.ketu);
-  const lagna=toSid(ascendant(dateUTC,lat,lon));
-  return{ay,bodies:[{name:'Lagna',angle:lagna},{name:'Sun',angle:sun},{name:'Moon',angle:moon},{name:'Mercury',angle:merc},{name:'Venus',angle:ven},{name:'Mars',angle:mars},{name:'Jupiter',angle:jup},{name:'Saturn',angle:sat},{name:'Rahu',angle:rahu},{name:'Ketu',angle:ketu}]};
-}
-
-async function skyScanOnline(local,lat,lon){
-  const base=document.getElementById('apiBase').value.trim(); if(!base){ document.getElementById('skyNote').textContent='Set API Base URL or use Offline'; return null; }
-  const key=document.getElementById('apiKey').value.trim();
-  const dt=`${document.getElementById('date').value}T${document.getElementById('time').value}:00`;
+// --- Ephemeris (loaded from /ephe/ephemeris.json) ---
+let EPHE = null;
+async function loadEphe(){
   try{
-    const url=`${base}?datetime=${encodeURIComponent(dt)}&lat=${lat}&lon=${lon}`;
-    const res=await fetch(url,{headers:key?{'Authorization':`Bearer ${key}`}:{}});
-    if(!res.ok) throw new Error('API request failed');
-    const data=await res.json();
-    const dateUTC=new Date(local.getTime()-local.getTimezoneOffset()*60000); const ay=lahiriAyanamsha(dateUTC);
-    const toSid=lon=>mod360(lon-ay);
-    let lagna = data.Lagna!=null?data.Lagna:toSid(ascendant(dateUTC,lat,lon));
-    let rahu = data.Rahu!=null?toSid(data.Rahu):toSid(nodeLonApprox(dateUTC).rahu);
-    let ketu = mod360(rahu+180);
-    const bodies=[
-      {name:'Lagna',angle:toSid(lagna)},
-      {name:'Sun',angle:toSid(data.Sun)},
-      {name:'Moon',angle:toSid(data.Moon)},
-      {name:'Mercury',angle:toSid(data.Mercury)},
-      {name:'Venus',angle:toSid(data.Venus)},
-      {name:'Mars',angle:toSid(data.Mars)},
-      {name:'Jupiter',angle:toSid(data.Jupiter)},
-      {name:'Saturn',angle:toSid(data.Saturn)},
-      {name:'Rahu',angle:rahu},
-      {name:'Ketu',angle:ketu},
-    ];
-    return {bodies,ay};
+    const res = await fetch('./ephe/ephemeris.json', {cache:'no-store'});
+    EPHE = await res.json();
   }catch(e){
-    document.getElementById('skyNote').textContent='Online error: '+e.message; return null;
+    console.warn('Ephemeris load failed. Using fallback.');
+    EPHE = { "2025-08-12": { "Sun": 139.2, "Mercury": 155.0, "Venus": 154.5, "Mars": 70.1, "Jupiter": 45.8, "Saturn": 345.2, "Uranus": 55.3, "Neptune": 354.7, "Pluto": 296.4 } };
   }
 }
-
-function renderSky(bodies,ay){
-  const tbl=document.getElementById('skyTbl'); while(tbl.children.length>2) tbl.removeChild(tbl.lastChild);
-  bodies.forEach(b=>{
-    const nameCell=document.createElement('div'); nameCell.textContent=b.name;
-    const valCell=document.createElement('div'); valCell.textContent=signString(b.angle);
-    const row=document.createElement('div'); row.className='rowBody'; row.setAttribute('data-name',b.name); row.setAttribute('data-angle',String(b.angle));
-    tbl.appendChild(nameCell); tbl.appendChild(valCell); tbl.appendChild(row);
-  });
-  document.getElementById('skyNote').textContent=`Ayanamsha (Lahiri approx): ${r(ay,3)}°`;
+function getLongitudes(isoDate){
+  if(EPHE[isoDate]) return EPHE[isoDate];
+  const keys = Object.keys(EPHE).sort();
+  let bestKey = keys[0], bestDiff=1e12, target = new Date(isoDate).getTime();
+  for(const k of keys){
+    const d = Math.abs(new Date(k).getTime()-target);
+    if(d<bestDiff){ bestDiff=d; bestKey=k; }
+  }
+  return EPHE[bestKey];
 }
 
-function runSky(){
-  const mode=document.getElementById('skyMode').value; const lat=num(document.getElementById('lat').value), lon=num(document.getElementById('lon').value);
-  if(!document.getElementById('date').value||!document.getElementById('time').value) nowLocalInit();
-  const [Y,M,D]=document.getElementById('date').value.split('-').map(Number); const [hh,mm]=document.getElementById('time').value.split(':').map(Number);
-  const local=new Date(); local.setFullYear(Y); local.setMonth(M-1); local.setDate(D); local.setHours(hh||0); local.setMinutes(mm||0); local.setSeconds(0); local.setMilliseconds(0);
-  if(mode==='offline'){ const res=skyScanOffline(local,lat,lon); renderSky(res.bodies,res.ay); }
-  else { (async()=>{const res=await skyScanOnline(local,lat,lon); if(res) renderSky(res.bodies,res.ay);})() }
-}
+// --- Angles ---
+function priceAngle(pH,pL){ return mod360((Math.sqrt(pH)-Math.sqrt(pL))*180); }
+function timeAngle(bars){ return mod360(Math.sqrt(Math.max(0,bars))*180); }
 
-function planetIdCalc(){
-  const V=values();
-  const radius=isFinite(V.harmPrice)?V.harmPrice:144;
-  const rows=document.querySelectorAll('#skyTbl .rowBody'); if(!rows.length){ document.getElementById('pid_matches').textContent='Run Sky Scan first.'; return; }
-  const sqrtDelta=(Math.sqrt(V.high)-Math.sqrt(V.low));
-  const thetaPrice=mod360(sqrtDelta*180);
-  const dP=radius*sinDeg(overrideAngle!=null?overrideAngle:thetaPrice);
-  const x=Math.min(1,Math.max(-1,Math.abs(dP)/radius)); const alpha=rad2deg(Math.asin(x));
-  const cands=[mod360(alpha),mod360(180-alpha),mod360(180+alpha),mod360(360-alpha)];
-  const bodies=[]; rows.forEach(row=>{const name=row.getAttribute('data-name'); const ang=parseFloat(row.getAttribute('data-angle')); if(isFinite(ang)) bodies.push({name,angle:ang});});
-  const dist=(a,b)=>{const d=Math.abs(a-b)%360;return d>180?360-d:d;};
-  const ranked=bodies.map(b=>{let score=Math.min(...cands.map(c=>dist(c,b.angle))); return {...b,d:score};}).sort((a,b)=>a.d-b.d).slice(0,6);
-  lastBest=ranked.length?ranked[0]:null;
-  document.getElementById('pid_matches').textContent=ranked.map(p=>`${p.name} ${r(p.angle,2)}° (Δ ${r(p.d,2)}°)`).join('  •  ');
-}
+// --- Beat ---
+function beatAngle(a,b){ return mod360(b-a); }
 
-document.getElementById('scanBtn').addEventListener('click', ()=>{ runSky(); });
-document.getElementById('nowBtn').addEventListener('click', ()=>{ nowLocalInit(); runSky(); });
-document.getElementById('pid_calc').addEventListener('click', planetIdCalc);
-document.getElementById('pid_apply').addEventListener('click', ()=>{
-  if(!lastBest){ document.getElementById('pid_applied').textContent='No match yet — Scan Angles'; return; }
-  overrideAngle=lastBest.angle; document.getElementById('targetAngle').value = r(overrideAngle,4);
-  document.getElementById('pid_applied').textContent = `${lastBest.name} @ ${r(overrideAngle,4)}° applied`;
-  document.getElementById('controllerBadge').textContent = `Controller: ${lastBest.name} @ ${r(overrideAngle,4)}°`;
-  calculate(); sq9();
-});
-document.getElementById('pid_clear').addEventListener('click', ()=>{
-  overrideAngle=null; document.getElementById('pid_applied').textContent='—'; document.getElementById('controllerBadge').textContent='Controller: —'; calculate(); sq9();
-});
+// --- Square of 9 ---
+function so9Target(p0, rotations){ const r=Math.sqrt(p0)+rotations; return r*r; }
 
-(function(){ const now=new Date(); document.getElementById('date').value=now.toISOString().slice(0,10); const hh=String(now.getHours()).padStart(2,'0'); const mm=String(now.getMinutes()).padStart(2,'0'); document.getElementById('time').value=`${hh}:${mm}`; calculate(); sq9(); })();
-</script><script>
-  <script>
-// --- K selector wiring (reads existing tables, no retyping) ---
-function updateSelectedK() {
-  const kSel = document.getElementById('kValue');
-  const k = parseInt(kSel.value || '0', 10);
-  // Show selected K
-  const kOut = document.getElementById('sqKSel');
-  if (kOut) kOut.textContent = k;
+// --- Drawing ---
+function drawWheel(canvas, cfg){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx=W/2, cy=H/2;
+  const R = Math.min(W,H)/2 - 12;
+  ctx.clearRect(0,0,W,H);
 
-  // Grab the price at K from the existing "targetsTbl"
-  const priceOut = document.getElementById('sqPriceSel');
-  const priceTbl = document.getElementById('targetsTbl');
-  if (priceOut) {
-    let text = '—';
-    if (priceTbl && priceTbl.rows && priceTbl.rows[k + 1] && priceTbl.rows[k + 1].cells[1]) {
-      text = priceTbl.rows[k + 1].cells[1].textContent.trim();
-    }
-    priceOut.textContent = text;
+  // Cosmic gradient
+  const g = ctx.createRadialGradient(cx, cy, R*0.1, cx, cy, R);
+  g.addColorStop(0, '#0b1020'); g.addColorStop(1, '#060912');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fill();
+
+  // Cardinal cross
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1.2;
+  for(const d of [0,90,180,270]){
+    const rad = (d+cfg.rot) * Math.PI/180;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
   }
 
-  // Grab the bars/time at K from an optional time table (id="timeTargetsTbl" if present)
-  const barsOut = document.getElementById('sqBarsSel');
-  // If you already have a time-table, keep id="timeTargetsTbl". If not, barsOut will remain "—"
-  const barsTbl = document.getElementById('timeTargetsTbl');
-  if (barsOut) {
-    let text = '—';
-    if (barsTbl && barsTbl.rows && barsTbl.rows[k + 1] && barsTbl.rows[k + 1].cells[1]) {
-      text = barsTbl.rows[k + 1].cells[1].textContent.trim();
-    }
-    barsOut.textContent = text;
-  }
-}
-
-// Re-run after any input changes or when tables refresh
-function hookKUpdates() {
-  const ids = ['anchor','current','sqDir','targetAngle','kValue'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', updateSelectedK);
-    if (el && el.tagName === 'SELECT') el.addEventListener('change', updateSelectedK);
-  });
-  // Also expose a safe global so other code can call this after it rebuilds tables
-  window.__updateSelectedK = updateSelectedK;
-}
-
-// Try to hook now, and again after a short delay (covers table rebuilds)
-document.addEventListener('DOMContentLoaded', () => {
-  hookKUpdates();
-  setTimeout(updateSelectedK, 100);  // first pass
-  setTimeout(updateSelectedK, 400);  // after tables render
-});
-</script>
-/* --- Prefetch & cache Swiss Ephemeris files for offline use --- */
-(async () => {
-  const EPHE_FILES = [
-    'ephe/semo_18.se1',  // modern (1800–2399) - planets & main asteroids
-    'ephe/seas_18.se1',  // same/aux set A
-    'ephe/sepl_18.se1'   // same/aux set L
-  ];
-  const CACHE_NAME = 'ephe-v1';
-  const cache = await caches.open(CACHE_NAME);
-
-  for (const url of EPHE_FILES) {
-    try {
-      const res = await fetch(url, { cache: 'reload' });
-      if (res.ok) await cache.put(new Request(url), res.clone());
-    } catch (err) {
-      console.warn('Ephemeris prefetch failed:', url, err);
-    }
+  // Minor spokes
+  ctx.strokeStyle='#1f2937'; ctx.lineWidth=0.7;
+  for(let d=0; d<360; d+=30){
+    const rad=(d+cfg.rot)*Math.PI/180;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
   }
 
-  // Helper so app code can read a file later: await window.getEphemeris('semo_18.se1')
-  window.getEphemeris = async (fileName) => {
-    const res = await (await caches.open(CACHE_NAME)).match('ephe/' + fileName);
-    return res ? await res.text() : null;
+  // Planet markers
+  const colors = {
+    Sun:'#ffe08a', Mercury:'#86efac', Venus:'#f9a8d4', Mars:'#fca5a5',
+    Jupiter:'#93c5fd', Saturn:'#ddd6fe', Uranus:'#a7f3d0', Neptune:'#bae6fd', Pluto:'#c4b5fd'
   };
+  for(const [name,deg] of Object.entries(cfg.planets||{})){
+    const rad=(deg+cfg.rot)*Math.PI/180;
+    const x = cx + (R-10)*Math.cos(rad);
+    const y = cy + (R-10)*Math.sin(rad);
+    ctx.fillStyle = colors[name] || '#e5e7eb';
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+    if(cfg.align && cfg.align.hits && cfg.align.hits.includes(name)){
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.stroke();
+    }
+  }
+
+  // Price & Time needles
+  const pn = (cfg.pAngle+cfg.rot)*Math.PI/180;
+  const tn = (cfg.tAngle+cfg.rot)*Math.PI/180;
+  ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(pn), cy+R*Math.sin(pn)); ctx.stroke();
+  ctx.strokeStyle='#60a5fa'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(tn), cy+R*Math.sin(tn)); ctx.stroke();
+
+  if(cfg.align && cfg.align.pass){
+    ctx.strokeStyle='#22c55e'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx,cy,R-4,0,Math.PI*2); ctx.stroke();
+  }
+}
+
+// --- Spin (drag + momentum) ---
+function makeSpinnable(canvas, state, onChange){
+  let dragging=false, lastA=0, vel=0, raf=null, lastT=0;
+  function angleAt(e){
+    const r = canvas.getBoundingClientRect();
+    const x = (e.touches?e.touches[0].clientX:e.clientX) - (r.left + r.width/2);
+    const y = (e.touches?e.touches[0].clientY:e.clientY) - (r.top + r.height/2);
+    return Math.atan2(y,x)*180/Math.PI;
+  }
+  function onDown(e){ dragging=true; lastA=angleAt(e); vel=0; e.preventDefault(); }
+  function onMove(e){ if(!dragging) return; const a=angleAt(e); let da=a-lastA; lastA=a; state.rot=mod360(state.rot+da); vel=da; onChange(); }
+  function onUp(){ dragging=false; }
+  function animate(ts){
+    if(!lastT) lastT=ts; const dt=(ts-lastT)/16; lastT=ts;
+    if(Math.abs(vel)>0.1){ state.rot=mod360(state.rot+vel); vel*=0.97; onChange(); }
+    raf=requestAnimationFrame(animate);
+  }
+  canvas.addEventListener('mousedown',onDown); canvas.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp);
+  canvas.addEventListener('touchstart',onDown,{passive:false}); canvas.addEventListener('touchmove',onMove,{passive:false}); window.addEventListener('touchend',onUp);
+  raf=requestAnimationFrame(animate);
+  return ()=>cancelAnimationFrame(raf);
+}
+
+// --- State ---
+const state = {
+  date: todayISO(),
+  pH: null, pL: null, bars: null,
+  k: 12, hp: 144, ht: 225, priceTol:3, timeTol:3,
+  mode:'auto',
+  rot: 0,
+  planets: {},
+  pAngle: 0, tAngle: 0
+};
+
+// --- Startup wiring ---
+$('datePick').value = todayISO();
+$('teachBtn').addEventListener('click', ()=>{ $('fs').style.display='flex'; });
+$('fsClose').addEventListener('click', ()=>{ $('fs').style.display='none'; });
+
+for(const [id,delta] of Object.entries({minus30:-30,minus7:-7,minus1:-1,plus1:1,plus7:7,plus30:30})){
+  $(id).addEventListener('click',()=>{ const d=new Date(state.date); d.setDate(d.getDate()+delta); setDateISO(d.toISOString().slice(0,10)); });
+}
+$('jumpCycle').addEventListener('change', e=>{
+  const v = Number(e.target.value||0); if(!v) return;
+  const d=new Date(state.date); d.setDate(d.getDate()+v); setDateISO(d.toISOString().slice(0,10)); e.target.value='';
+});
+$('datePick').addEventListener('change', e=> setDateISO(e.target.value));
+$('mode').addEventListener('change', e=> state.mode = e.target.value);
+$('clearBtn').addEventListener('click', ()=>{
+  $('pHigh').value=''; $('pLow').value=''; $('bars').value=''; $('out').textContent='Cleared.'; setStatus('Awaiting input…'); state.pH=null; state.pL=null; state.bars=null;
+});
+
+$('scanBtn').addEventListener('click', doScan);
+
+const wheel = $('wheel'), fsWheel=$('fsWheel');
+const overlay = $('overlayText'), fsOverlay=$('fsOverlay');
+
+makeSpinnable(wheel, state, render);
+makeSpinnable(fsWheel, state, renderFS);
+
+function setDateISO(iso){
+  state.date = iso; $('datePick').value = iso;
+  if(EPHE){ state.planets = getLongitudes(iso); render(); renderFS(); }
+}
+
+function setStatus(text, pass=null){
+  const el=$('status'); el.textContent=text;
+  el.className='status'+(pass===true?' pass':pass===false?' fail':'');
+}
+
+// --- Main calc ---
+function doScan(){
+  const pH = Number($('pHigh').value), pL=Number($('pLow').value), bars=Number($('bars').value);
+  if(!pH || !pL){ setStatus('Enter High and Low.', false); return; }
+  state.pH=pH; state.pL=pL; state.bars=bars||0;
+  state.k=Number($('k').value||12); state.hp=Number($('hp').value||144); state.ht=Number($('ht').value||225);
+  state.priceTol=Number($('priceTol').value||3); state.timeTol=Number($('timeTol').value||3);
+
+  state.pAngle = priceAngle(pH,pL);
+  state.tAngle = timeAngle(state.bars);
+
+  const pls = state.planets || {};
+  let bestSingle=null, bestBeat=null;
+  const names = Object.keys(pls);
+  for(const nm of names){
+    const lon = pls[nm]; const diff = angDiff(state.pAngle, lon);
+    if(!bestSingle || diff<bestSingle.diff) bestSingle = {name:nm, angle:lon, diff};
+  }
+  for(let i=0;i<names.length;i++){
+    for(let j=i+1;j<names.length;j++){
+      const a=pls[names[i]], b=pls[j=names[j]]; // (typo-proofing not critical)
+    }
+  }
+  // compute best beat properly
+  bestBeat=null;
+  for(let i=0;i<names.length;i++){
+    for(let j=i+1;j<names.length;j++){
+      const a=pls[names[i]], b=pls[names[j]];
+      const beat = mod360(b-a);
+      const diff = angDiff(state.pAngle, beat);
+      if(!bestBeat || diff<bestBeat.diff) bestBeat={names:[names[i],names[j]], angle:beat, diff};
+    }
+  }
+
+  let activeAngle = state.pAngle, activeInfo='';
+  let activeMode = state.mode;
+  if(state.mode==='auto'){
+    if(bestBeat && (!bestSingle || bestBeat.diff<bestSingle.diff)){
+      activeMode='beat'; activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`;
+    }else{
+      activeMode='single'; activeAngle=bestSingle.angle; activeInfo=`${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`;
+    }
+  }else if(state.mode==='single'){ activeAngle=bestSingle.angle; activeInfo=`${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`; }
+    else if(state.mode==='beat'){ activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`; }
+
+  const sector = 360/Math.max(1,state.k);
+  const tSnap = Math.round(state.tAngle/sector)*sector;
+
+  const pricePass = angDiff(state.pAngle, activeAngle) <= state.priceTol;
+  const timePass  = angDiff(state.tAngle, tSnap) <= state.timeTol;
+
+  const HPk = state.hp; const HTk=state.ht;
+  const dP = HPk*Math.sin(activeAngle*Math.PI/180);
+  const dT = HTk*Math.cos(tSnap*Math.PI/180);
+  const longT = state.pL + Math.abs(dP);
+  const shortT= state.pH - Math.abs(dP);
+
+  const rotations = (state.tAngle/360);
+  const so9Up = so9Target(state.pL, rotations);
+  const so9Down = so9Target(state.pH, -rotations);
+
+  const pass = pricePass && timePass;
+  setStatus(pass?'PASS — Vibration aligned':'FAIL — Check tolerances', pass);
+
+  const lines=[];
+  lines.push(`Date: ${state.date}`);
+  lines.push(`Mode: ${activeMode.toUpperCase()}  Active: ${activeInfo}`);
+  lines.push(`Angles: Price=${fmt(state.pAngle)}°  Time=${fmt(state.tAngle)}°  → TimeSnap=${fmt(tSnap)}°`);
+  lines.push(`ΔP = ${fmt(dP)}  ΔT = ${fmt(dT)}`);
+  lines.push(`Targets → Long: ${fmt(longT)}  Short: ${fmt(shortT)}`);
+  lines.push(`SO9 → Up from Low: ${fmt(so9Up)}  Down from High: ${fmt(so9Down)}`);
+  $('out').textContent = lines.join('\n');
+
+  $('overlayText').textContent = pass ? 'Square-Out! Price & Time resonating.' : 'No square-out yet — adjust k/tolerance or date.';
+  if(pass){ haptic(30); blip(); }
+
+  render(); renderFS();
+}
+
+function render(){
+  drawWheel(wheel, {rot:state.rot, planets:state.planets, pAngle:state.pAngle||0, tAngle:state.tAngle||0,
+    align:{pass: $('status').classList.contains('pass'), hits: []} });
+}
+function renderFS(){
+  drawWheel(fsWheel, {rot:state.rot, planets:state.planets, pAngle:state.pAngle||0, tAngle:state.tAngle||0,
+    align:{pass: $('status').classList.contains('pass'), hits: []} });
+  $('fsOverlay').textContent = $('overlayText').textContent;
+}
+
+// Init
+(async function init(){
+  await loadEphe();
+  setDateISO(todayISO());
+  // startup spin
+  let t=0; const spin=()=>{ if(t<180){ state.rot+=1.5; render(); renderFS(); t++; requestAnimationFrame(spin);} };
+  requestAnimationFrame(spin);
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 })();
 </script>
 </body>
 </html>
-
