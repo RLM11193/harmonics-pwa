@@ -4,20 +4,22 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gann Master Wheel</title>
-<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
   :root{color-scheme:dark light}
+  *{box-sizing:border-box}
   body{margin:0;background:#0b1020;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
-  header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0f172a;color:#fff;position:sticky;top:0;z-index:5}
+  header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0f172a;color:#fff;position:sticky;top:0;z-index:10}
   h1{font-size:1.1rem;margin:0}
-  main{padding:12px;max-width:900px;margin:0 auto}
+  main{padding:12px;max-width:960px;margin:0 auto}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-  label{font-size:.8rem;opacity:.85;margin-bottom:4px;display:block}
+  label{font-size:.8rem;opacity:.9;margin-bottom:4px;display:block}
   input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1020;color:#e5e7eb}
   button{background:#2563eb;border:none;font-weight:600}
-  .muted{opacity:.75;font-size:.9rem}
+  button.ghost{background:#0b1020}
+  .muted{opacity:.8;font-size:.9rem}
   .status{padding:10px;border-radius:10px;font-weight:700;text-align:center}
   .pass{background:#064e3b;color:#d1fae5;border:1px solid #065f46}
   .fail{background:#7f1d1d;color:#fee2e2;border:1px solid #991b1b}
@@ -26,7 +28,7 @@
   .controls{display:flex;gap:6px;flex-wrap:wrap}
   .controls button{flex:1}
   canvas{display:block;margin:10px auto;background:radial-gradient(1200px 400px at 50% 0%, #0b1020, #060912);border-radius:50%;}
-  .overlay{position:absolute;left:0;right:0;text-align:center;margin-top:-26px;font-size:.9rem;opacity:.9}
+  .overlay{position:absolute;left:0;right:0;text-align:center;margin-top:-26px;font-size:.9rem;opacity:.95}
   .fs-teach{position:fixed;inset:0;background:#000c;backdrop-filter:blur(2px);display:none;z-index:50;flex-direction:column}
   .fs-header{display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
   .fs-canvas{flex:1;display:flex;align-items:center;justify-content:center}
@@ -37,13 +39,14 @@
 <body>
 <header>
   <h1>Gann Master Wheel</h1>
-  <div class="toggle-row" style="max-width:420px">
+  <div class="toggle-row" style="max-width:440px">
     <button id="teachBtn" class="pill">Teaching Mode</button>
     <button id="soundBtn" class="pill">Sound: Off</button>
   </div>
 </header>
 
 <main>
+  <!-- Inputs -->
   <div class="card">
     <div class="row">
       <div>
@@ -88,18 +91,19 @@
 
     <div class="controls" style="margin-top:8px">
       <button id="scanBtn">Scan & Calculate</button>
-      <button id="clearBtn">Clear</button>
+      <button id="clearBtn" class="ghost">Clear</button>
     </div>
     <div class="muted small" style="margin-top:6px">
-      ΔP = Rₚ × sin(((√P_high − √P_low) × 180°) → snapped), ΔT = Rₜ × cos((√bars × 180°) → snapped). Square-of-9: (√P ± rotations)².
+      ΔP = Rₚ × sin(((√P_high − √P_low) × 180°) → matched angle), ΔT = Rₜ × cos((√bars × 180°) → k-snap). SO9: (√P ± rotations)².
     </div>
   </div>
 
+  <!-- Date + mode -->
   <div class="card">
     <div class="toggle-row">
       <div class="pill small" id="dateBar">
         <button id="minus30">-30d</button><button id="minus7">-7d</button><button id="minus1">-1d</button>
-        <input id="datePick" type="date" style="width:9.5rem;display:inline-block">
+        <input id="datePick" type="date" style="width:9.6rem;display:inline-block">
         <button id="plus1">+1d</button><button id="plus7">+7d</button><button id="plus30">+30d</button>
       </div>
       <select id="jumpCycle" class="pill small" style="max-width:160px">
@@ -120,11 +124,13 @@
     <div id="status" class="status">Awaiting input…</div>
   </div>
 
-  <div class="card">
+  <!-- Visuals -->
+  <div class="card" style="position:relative">
     <canvas id="wheel" width="340" height="340"></canvas>
     <div class="overlay" id="overlayText"></div>
   </div>
 
+  <!-- Output -->
   <div class="card">
     <h3 style="margin:0 0 8px 0">Results</h3>
     <pre id="out">Enter values and tap Scan & Calculate.</pre>
@@ -144,69 +150,56 @@
 </div>
 
 <script>
-// --- Utilities ---
+/* ========= Utilities ========= */
 const $ = (id)=>document.getElementById(id);
 const mod360 = d => ((d%360)+360)%360;
 const angDiff = (a,b)=>{let d=Math.abs(mod360(a)-mod360(b));return d>180?360-d:d};
 const fmt = n => Number(n).toLocaleString(undefined,{maximumFractionDigits:8});
 const todayISO = ()=> new Date().toISOString().slice(0,10);
 
-// --- Sound (simple) ---
+/* ========= Sound & Haptics ========= */
 let audioCtx=null, humOsc=null;
 $('soundBtn').addEventListener('click', ()=>{
   if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
-  if(humOsc){
-    humOsc.stop(); humOsc.disconnect(); humOsc=null; $('soundBtn').textContent='Sound: Off'; return;
-  }
+  if(humOsc){ humOsc.stop(); humOsc.disconnect(); humOsc=null; $('soundBtn').textContent='Sound: Off'; return; }
   humOsc = audioCtx.createOscillator();
   const gain = audioCtx.createGain(); gain.gain.value=0.02;
   humOsc.type='sine'; humOsc.frequency.value=110; humOsc.connect(gain).connect(audioCtx.destination);
-  humOsc.start();
-  $('soundBtn').textContent='Sound: On';
+  humOsc.start(); $('soundBtn').textContent='Sound: On';
 });
 function blip(){
   if(!audioCtx) return;
   const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
   o.type='triangle'; o.frequency.value=660; g.gain.value=0.1;
-  o.connect(g).connect(audioCtx.destination); o.start(); setTimeout(()=>{o.stop();},120);
+  o.connect(g).connect(audioCtx.destination); o.start(); setTimeout(()=>o.stop(),120);
 }
-
-// --- Haptics ---
 function haptic(ms=15){ if(navigator.vibrate) navigator.vibrate(ms); }
 
-// --- Ephemeris (loaded from /ephe/ephemeris.json) ---
-let EPHE = null;
+/* ========= Ephemeris (JSON next to your .se1 files) ========= */
+let EPHE=null;
 async function loadEphe(){
   try{
-    const res = await fetch('./ephe/ephemeris.json', {cache:'no-store'});
+    const res = await fetch('./ephe/ephemeris.json',{cache:'no-store'});
     EPHE = await res.json();
   }catch(e){
-    console.warn('Ephemeris load failed. Using fallback.');
-    EPHE = { "2025-08-12": { "Sun": 139.2, "Mercury": 155.0, "Venus": 154.5, "Mars": 70.1, "Jupiter": 45.8, "Saturn": 345.2, "Uranus": 55.3, "Neptune": 354.7, "Pluto": 296.4 } };
+    console.warn('No ephemeris.json found. Using fallback sample.');
+    EPHE = { "2025-08-12": { "Sun":139.2,"Mercury":155.0,"Venus":154.5,"Mars":70.1,"Jupiter":45.8,"Saturn":345.2,"Uranus":55.3,"Neptune":354.7,"Pluto":296.4 } };
   }
 }
 function getLongitudes(isoDate){
   if(EPHE[isoDate]) return EPHE[isoDate];
   const keys = Object.keys(EPHE).sort();
-  let bestKey = keys[0], bestDiff=1e12, target = new Date(isoDate).getTime();
-  for(const k of keys){
-    const d = Math.abs(new Date(k).getTime()-target);
-    if(d<bestDiff){ bestDiff=d; bestKey=k; }
-  }
+  let bestKey=keys[0], best=1e12, tgt=new Date(isoDate).getTime();
+  for(const k of keys){ const d=Math.abs(new Date(k).getTime()-tgt); if(d<best){best=d; bestKey=k;} }
   return EPHE[bestKey];
 }
 
-// --- Angles ---
-function priceAngle(pH,pL){ return mod360((Math.sqrt(pH)-Math.sqrt(pL))*180); }
-function timeAngle(bars){ return mod360(Math.sqrt(Math.max(0,bars))*180); }
+/* ========= Gann Math ========= */
+const priceAngle = (pH,pL)=> mod360((Math.sqrt(pH)-Math.sqrt(pL))*180);
+const timeAngle  = (bars)=> mod360(Math.sqrt(Math.max(0,bars))*180);
+const so9Target  = (p0,rot)=>{ const r=Math.sqrt(p0)+rot; return r*r; };
 
-// --- Beat ---
-function beatAngle(a,b){ return mod360(b-a); }
-
-// --- Square of 9 ---
-function so9Target(p0, rotations){ const r=Math.sqrt(p0)+rotations; return r*r; }
-
-// --- Drawing ---
+/* ========= Drawing ========= */
 function drawWheel(canvas, cfg){
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height, cx=W/2, cy=H/2;
@@ -221,182 +214,120 @@ function drawWheel(canvas, cfg){
   // Cardinal cross
   ctx.strokeStyle='#334155'; ctx.lineWidth=1.2;
   for(const d of [0,90,180,270]){
-    const rad = (d+cfg.rot) * Math.PI/180;
-    ctx.beginPath(); ctx.moveTo(cx,cy);
-    ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
+    const rad=(d+cfg.rot)*Math.PI/180;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
   }
-
   // Minor spokes
   ctx.strokeStyle='#1f2937'; ctx.lineWidth=0.7;
   for(let d=0; d<360; d+=30){
     const rad=(d+cfg.rot)*Math.PI/180;
-    ctx.beginPath(); ctx.moveTo(cx,cy);
-    ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(rad), cy+R*Math.sin(rad)); ctx.stroke();
   }
 
   // Planet markers
-  const colors = {
-    Sun:'#ffe08a', Mercury:'#86efac', Venus:'#f9a8d4', Mars:'#fca5a5',
-    Jupiter:'#93c5fd', Saturn:'#ddd6fe', Uranus:'#a7f3d0', Neptune:'#bae6fd', Pluto:'#c4b5fd'
-  };
+  const colors={ Sun:'#ffe08a',Mercury:'#86efac',Venus:'#f9a8d4',Mars:'#fca5a5',
+    Jupiter:'#93c5fd',Saturn:'#ddd6fe',Uranus:'#a7f3d0',Neptune:'#bae6fd',Pluto:'#c4b5fd' };
   for(const [name,deg] of Object.entries(cfg.planets||{})){
-    const rad=(deg+cfg.rot)*Math.PI/180;
-    const x = cx + (R-10)*Math.cos(rad);
-    const y = cy + (R-10)*Math.sin(rad);
-    ctx.fillStyle = colors[name] || '#e5e7eb';
-    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
-    if(cfg.align && cfg.align.hits && cfg.align.hits.includes(name)){
-      ctx.strokeStyle = '#22c55e'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.stroke();
-    }
+    const rad=(deg+cfg.rot)*Math.PI/180, x=cx+(R-10)*Math.cos(rad), y=cy+(R-10)*Math.sin(rad);
+    ctx.fillStyle=colors[name]||'#e5e7eb'; ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
   }
 
   // Price & Time needles
-  const pn = (cfg.pAngle+cfg.rot)*Math.PI/180;
-  const tn = (cfg.tAngle+cfg.rot)*Math.PI/180;
-  ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2.2;
-  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(pn), cy+R*Math.sin(pn)); ctx.stroke();
+  const pn=(cfg.pAngle+cfg.rot)*Math.PI/180, tn=(cfg.tAngle+cfg.rot)*Math.PI/180;
+  ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(pn), cy+R*Math.sin(pn)); ctx.stroke();
   ctx.strokeStyle='#60a5fa'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(tn), cy+R*Math.sin(tn)); ctx.stroke();
 
-  if(cfg.align && cfg.align.pass){
-    ctx.strokeStyle='#22c55e'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(cx,cy,R-4,0,Math.PI*2); ctx.stroke();
-  }
+  // PASS pulse ring
+  if(cfg.align?.pass){ ctx.strokeStyle='#22c55e'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,R-4,0,Math.PI*2); ctx.stroke(); }
 }
 
-// --- Spin (drag + momentum) ---
+/* ========= Spin (touch drag + momentum) ========= */
 function makeSpinnable(canvas, state, onChange){
   let dragging=false, lastA=0, vel=0, raf=null, lastT=0;
-  function angleAt(e){
-    const r = canvas.getBoundingClientRect();
-    const x = (e.touches?e.touches[0].clientX:e.clientX) - (r.left + r.width/2);
-    const y = (e.touches?e.touches[0].clientY:e.clientY) - (r.top + r.height/2);
-    return Math.atan2(y,x)*180/Math.PI;
-  }
+  const angleAt=(e)=>{ const r=canvas.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-(r.left+r.width/2); const y=(e.touches?e.touches[0].clientY:e.clientY)-(r.top+r.height/2); return Math.atan2(y,x)*180/Math.PI; };
   function onDown(e){ dragging=true; lastA=angleAt(e); vel=0; e.preventDefault(); }
   function onMove(e){ if(!dragging) return; const a=angleAt(e); let da=a-lastA; lastA=a; state.rot=mod360(state.rot+da); vel=da; onChange(); }
   function onUp(){ dragging=false; }
-  function animate(ts){
-    if(!lastT) lastT=ts; const dt=(ts-lastT)/16; lastT=ts;
-    if(Math.abs(vel)>0.1){ state.rot=mod360(state.rot+vel); vel*=0.97; onChange(); }
-    raf=requestAnimationFrame(animate);
-  }
+  function animate(ts){ if(!lastT) lastT=ts; if(Math.abs(vel)>0.1){ state.rot=mod360(state.rot+vel); vel*=0.97; onChange(); } raf=requestAnimationFrame(animate); }
   canvas.addEventListener('mousedown',onDown); canvas.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp);
   canvas.addEventListener('touchstart',onDown,{passive:false}); canvas.addEventListener('touchmove',onMove,{passive:false}); window.addEventListener('touchend',onUp);
   raf=requestAnimationFrame(animate);
   return ()=>cancelAnimationFrame(raf);
 }
 
-// --- State ---
+/* ========= State ========= */
 const state = {
   date: todayISO(),
-  pH: null, pL: null, bars: null,
-  k: 12, hp: 144, ht: 225, priceTol:3, timeTol:3,
+  pH:null, pL:null, bars:null,
+  k:12, hp:144, ht:225, priceTol:3, timeTol:3,
   mode:'auto',
-  rot: 0,
-  planets: {},
-  pAngle: 0, tAngle: 0
+  rot:0,
+  planets:{},
+  pAngle:0, tAngle:0
 };
 
-// --- Startup wiring ---
-$('datePick').value = todayISO();
-$('teachBtn').addEventListener('click', ()=>{ $('fs').style.display='flex'; });
-$('fsClose').addEventListener('click', ()=>{ $('fs').style.display='none'; });
+/* ========= Wire up ========= */
+$('datePick').value=todayISO();
+$('teachBtn').addEventListener('click',()=>{$('fs').style.display='flex';});
+$('fsClose').addEventListener('click',()=>{$('fs').style.display='none';});
 
 for(const [id,delta] of Object.entries({minus30:-30,minus7:-7,minus1:-1,plus1:1,plus7:7,plus30:30})){
   $(id).addEventListener('click',()=>{ const d=new Date(state.date); d.setDate(d.getDate()+delta); setDateISO(d.toISOString().slice(0,10)); });
 }
-$('jumpCycle').addEventListener('change', e=>{
-  const v = Number(e.target.value||0); if(!v) return;
-  const d=new Date(state.date); d.setDate(d.getDate()+v); setDateISO(d.toISOString().slice(0,10)); e.target.value='';
-});
-$('datePick').addEventListener('change', e=> setDateISO(e.target.value));
-$('mode').addEventListener('change', e=> state.mode = e.target.value);
-$('clearBtn').addEventListener('click', ()=>{
-  $('pHigh').value=''; $('pLow').value=''; $('bars').value=''; $('out').textContent='Cleared.'; setStatus('Awaiting input…'); state.pH=null; state.pL=null; state.bars=null;
-});
+$('jumpCycle').addEventListener('change',e=>{ const v=Number(e.target.value||0); if(!v) return; const d=new Date(state.date); d.setDate(d.getDate()+v); setDateISO(d.toISOString().slice(0,10)); e.target.value=''; });
+$('datePick').addEventListener('change',e=>setDateISO(e.target.value));
+$('mode').addEventListener('change',e=>state.mode=e.target.value);
+$('clearBtn').addEventListener('click',()=>{ $('pHigh').value='';$('pLow').value='';$('bars').value='';$('out').textContent='Cleared.'; setStatus('Awaiting input…'); state.pH=state.pL=state.bars=null; });
 
-$('scanBtn').addEventListener('click', doScan);
+$('scanBtn').addEventListener('click',doScan);
 
-const wheel = $('wheel'), fsWheel=$('fsWheel');
-const overlay = $('overlayText'), fsOverlay=$('fsOverlay');
+const wheel=$('wheel'), fsWheel=$('fsWheel');
+makeSpinnable(wheel,state,render); makeSpinnable(fsWheel,state,renderFS);
 
-makeSpinnable(wheel, state, render);
-makeSpinnable(fsWheel, state, renderFS);
+function setDateISO(iso){ state.date=iso; $('datePick').value=iso; if(EPHE){ state.planets=getLongitudes(iso); render(); renderFS(); } }
+function setStatus(text,pass=null){ const el=$('status'); el.textContent=text; el.className='status'+(pass===true?' pass':pass===false?' fail':''); }
 
-function setDateISO(iso){
-  state.date = iso; $('datePick').value = iso;
-  if(EPHE){ state.planets = getLongitudes(iso); render(); renderFS(); }
-}
-
-function setStatus(text, pass=null){
-  const el=$('status'); el.textContent=text;
-  el.className='status'+(pass===true?' pass':pass===false?' fail':'');
-}
-
-// --- Main calc ---
+/* ========= Main calc ========= */
 function doScan(){
-  const pH = Number($('pHigh').value), pL=Number($('pLow').value), bars=Number($('bars').value);
-  if(!pH || !pL){ setStatus('Enter High and Low.', false); return; }
+  const pH=Number($('pHigh').value), pL=Number($('pLow').value), bars=Number($('bars').value);
+  if(!pH||!pL){ setStatus('Enter High and Low.',false); return; }
   state.pH=pH; state.pL=pL; state.bars=bars||0;
   state.k=Number($('k').value||12); state.hp=Number($('hp').value||144); state.ht=Number($('ht').value||225);
   state.priceTol=Number($('priceTol').value||3); state.timeTol=Number($('timeTol').value||3);
 
-  state.pAngle = priceAngle(pH,pL);
-  state.tAngle = timeAngle(state.bars);
+  state.pAngle=priceAngle(pH,pL);
+  state.tAngle=timeAngle(state.bars);
 
-  const pls = state.planets || {};
+  const pls=state.planets||{}; const names=Object.keys(pls);
   let bestSingle=null, bestBeat=null;
-  const names = Object.keys(pls);
-  for(const nm of names){
-    const lon = pls[nm]; const diff = angDiff(state.pAngle, lon);
-    if(!bestSingle || diff<bestSingle.diff) bestSingle = {name:nm, angle:lon, diff};
-  }
-  for(let i=0;i<names.length;i++){
-    for(let j=i+1;j<names.length;j++){
-      const a=pls[names[i]], b=pls[j=names[j]]; // (typo-proofing not critical)
-    }
-  }
-  // compute best beat properly
-  bestBeat=null;
-  for(let i=0;i<names.length;i++){
-    for(let j=i+1;j<names.length;j++){
-      const a=pls[names[i]], b=pls[names[j]];
-      const beat = mod360(b-a);
-      const diff = angDiff(state.pAngle, beat);
-      if(!bestBeat || diff<bestBeat.diff) bestBeat={names:[names[i],names[j]], angle:beat, diff};
-    }
-  }
+  for(const nm of names){ const lon=pls[nm]; const diff=angDiff(state.pAngle,lon); if(!bestSingle||diff<bestSingle.diff) bestSingle={name:nm,angle:lon,diff}; }
+  for(let i=0;i<names.length;i++){ for(let j=i+1;j<names.length;j++){ const a=pls[names[i]], b=pls[names[j]]; const beat=mod360(b-a); const diff=angDiff(state.pAngle,beat); if(!bestBeat||diff<bestBeat.diff) bestBeat={names:[names[i],names[j]],angle:beat,diff}; } }
 
-  let activeAngle = state.pAngle, activeInfo='';
-  let activeMode = state.mode;
+  let activeAngle=state.pAngle, activeInfo='', activeMode=state.mode;
   if(state.mode==='auto'){
-    if(bestBeat && (!bestSingle || bestBeat.diff<bestSingle.diff)){
-      activeMode='beat'; activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`;
-    }else{
-      activeMode='single'; activeAngle=bestSingle.angle; activeInfo=`${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`;
-    }
+    if(bestBeat && (!bestSingle || bestBeat.diff<bestSingle.diff)){ activeMode='beat'; activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`; }
+    else{ activeMode='single'; activeAngle=bestSingle.angle; activeInfo=`${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`; }
   }else if(state.mode==='single'){ activeAngle=bestSingle.angle; activeInfo=`${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`; }
-    else if(state.mode==='beat'){ activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`; }
+  else if(state.mode==='beat'){ activeAngle=bestBeat.angle; activeInfo=`Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`; }
 
-  const sector = 360/Math.max(1,state.k);
-  const tSnap = Math.round(state.tAngle/sector)*sector;
+  // time k-snap
+  const sector=360/Math.max(1,state.k);
+  const tSnap=Math.round(state.tAngle/sector)*sector;
 
-  const pricePass = angDiff(state.pAngle, activeAngle) <= state.priceTol;
-  const timePass  = angDiff(state.tAngle, tSnap) <= state.timeTol;
+  const pricePass=angDiff(state.pAngle,activeAngle)<=state.priceTol;
+  const timePass =angDiff(state.tAngle,tSnap)<=state.timeTol;
 
-  const HPk = state.hp; const HTk=state.ht;
-  const dP = HPk*Math.sin(activeAngle*Math.PI/180);
-  const dT = HTk*Math.cos(tSnap*Math.PI/180);
-  const longT = state.pL + Math.abs(dP);
-  const shortT= state.pH - Math.abs(dP);
+  const dP=state.hp*Math.sin(activeAngle*Math.PI/180);
+  const dT=state.ht*Math.cos(tSnap*Math.PI/180);
+  const longT=state.pL+Math.abs(dP);
+  const shortT=state.pH-Math.abs(dP);
 
-  const rotations = (state.tAngle/360);
-  const so9Up = so9Target(state.pL, rotations);
-  const so9Down = so9Target(state.pH, -rotations);
+  const rotations=state.tAngle/360;
+  const so9Up=so9Target(state.pL,rotations);
+  const so9Down=so9Target(state.pH,-rotations);
 
-  const pass = pricePass && timePass;
-  setStatus(pass?'PASS — Vibration aligned':'FAIL — Check tolerances', pass);
+  const pass=pricePass&&timePass;
+  setStatus(pass?'PASS — Vibration aligned':'FAIL — Check tolerances',pass);
 
   const lines=[];
   lines.push(`Date: ${state.date}`);
@@ -405,7 +336,7 @@ function doScan(){
   lines.push(`ΔP = ${fmt(dP)}  ΔT = ${fmt(dT)}`);
   lines.push(`Targets → Long: ${fmt(longT)}  Short: ${fmt(shortT)}`);
   lines.push(`SO9 → Up from Low: ${fmt(so9Up)}  Down from High: ${fmt(so9Down)}`);
-  $('out').textContent = lines.join('\n');
+  $('out').textContent=lines.join('\n');
 
   $('overlayText').textContent = pass ? 'Square-Out! Price & Time resonating.' : 'No square-out yet — adjust k/tolerance or date.';
   if(pass){ haptic(30); blip(); }
@@ -413,17 +344,16 @@ function doScan(){
   render(); renderFS();
 }
 
+/* ========= Renderers ========= */
 function render(){
-  drawWheel(wheel, {rot:state.rot, planets:state.planets, pAngle:state.pAngle||0, tAngle:state.tAngle||0,
-    align:{pass: $('status').classList.contains('pass'), hits: []} });
+  drawWheel(wheel,{rot:state.rot,planets:state.planets,pAngle:state.pAngle||0,tAngle:state.tAngle||0,align:{pass:$('status').classList.contains('pass'),hits:[]}});
 }
 function renderFS(){
-  drawWheel(fsWheel, {rot:state.rot, planets:state.planets, pAngle:state.pAngle||0, tAngle:state.tAngle||0,
-    align:{pass: $('status').classList.contains('pass'), hits: []} });
-  $('fsOverlay').textContent = $('overlayText').textContent;
+  drawWheel(fsWheel,{rot:state.rot,planets:state.planets,pAngle:state.pAngle||0,tAngle:state.tAngle||0,align:{pass:$('status').classList.contains('pass'),hits:[]}});
+  $('fsOverlay').textContent=$('overlayText').textContent;
 }
 
-// Init
+/* ========= Init ========= */
 (async function init(){
   await loadEphe();
   setDateISO(todayISO());
