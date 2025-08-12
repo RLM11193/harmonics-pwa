@@ -2,138 +2,284 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gann Master Wheel</title>
-<link rel="manifest" href="manifest.json">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#000000" />
+
 <style>
+:root { color-scheme: dark light; }
+* { box-sizing: border-box; }
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at center, #111, #000);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin: 0; font-family: system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 600px at 50% -20%, #121826, #070a12 60%, #000);
+  color: #e5e7eb;
 }
 header {
-  padding: 10px;
-  text-align: center;
+  position: sticky; top: 0; z-index: 20;
+  background: #0f172a; color: #fff; padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.25);
 }
-button {
-  background: #222;
-  color: #fff;
-  border: 1px solid #555;
-  padding: 8px 12px;
-  margin: 4px;
-  border-radius: 6px;
-  font-size: 14px;
-}
-button:hover {
-  background: #333;
-}
-input, select {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background: #111;
-  color: #fff;
-}
+h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.2px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { background:#0b1020; border:1px solid #334155; color:#e5e7eb; padding:8px 12px; border-radius:999px; font-weight:600; }
+
+main { max-width: 980px; margin: 0 auto; padding: 12px; }
 .card {
-  background: #111;
-  padding: 10px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(255,255,255,0.05);
-  margin: 10px;
+  background:#0b1220cc; border:1px solid #1f2a40; border-radius:16px; padding:12px; margin:10px 0;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
 }
-.wheel-card canvas {
-  width: 100%;
-  max-width: 560px;
-  aspect-ratio: 1/1;
-  height: auto;
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+label { font-size:.8rem; opacity:.9; display:block; margin-bottom:4px; }
+input, select, button {
+  width: 100%; padding: 10px; border-radius: 12px;
+  border:1px solid #334155; background:#0b1020; color:#e5e7eb; font-weight:600;
 }
-#fs {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+button.primary { background:#2563eb; border:none; color:#fff; }
+button.ghost { background:#0b1020; }
+.controls { display:flex; gap:8px; flex-wrap:wrap; }
+
+.status {
+  text-align:center; padding:10px; border-radius:12px; font-weight:800;
+  border:1px solid #1f2a40; background:#0b1020;
 }
-#fs canvas {
-  width: 90vw;
-  max-width: 90vw;
-  aspect-ratio: 1/1;
-  height: auto;
+.status.pass { background:#052e25; color:#d1fae5; border-color:#0e4b3e; }
+.status.fail { background:#2a0f0f; color:#fee2e2; border-color:#5f1b1b; }
+.passPulse { animation: ring 1.2s infinite; }
+@keyframes ring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.45); }
+  50% { box-shadow: 0 0 0 8px rgba(34,197,94,.05); }
 }
-#helpOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  color: #fff;
-  padding: 20px;
-  display: none;
-  z-index: 10;
+
+.wheel-card { position: relative; }
+.wheel-card canvas { width: 100%; max-width: 560px; aspect-ratio: 1 / 1; height: auto; display:block; margin: 8px auto; border-radius:50%; }
+.overlay { position:absolute; left:0; right:0; top:10px; text-align:center; font-size:.9rem; opacity:.95; }
+
+#dateBar { display:flex; gap:6px; overflow:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none }
+#dateBar::-webkit-scrollbar { display:none }
+#dateBar button { flex:0 0 auto }
+
+pre#out { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.92rem; color:#cbd5e1; }
+
+.fs {
+  position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column;
+  background: rgba(0,0,0,.92); backdrop-filter: blur(2px);
 }
-#helpOverlay h2 {
-  margin-top: 0;
+.fsHead { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; }
+.fsBody { flex:1; display:flex; align-items:center; justify-content:center; padding: 10px; }
+.fsBody canvas { width: 96vw; max-width: 96vw; aspect-ratio: 1 / 1; height: auto; }
+
+.help {
+  position: fixed; inset: 0; background: rgb(0 0 0 / .9); color:#fff; display:none; z-index: 60; padding: 18px;
 }
-.glow {
-  filter: drop-shadow(0 0 8px yellow);
+.help .panel {
+  max-width: 760px; margin:40px auto; background:#0b1020; border:1px solid #1f2a40; border-radius:16px; padding:16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
 }
-.passPulse {
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 10px lime; }
-  50% { box-shadow: 0 0 20px lime; }
-}
+.help h2 { margin: 0 0 10px 0; font-size: 1.1rem; }
+.help ul { margin: 8px 0 0 16px; line-height: 1.5; }
+.help .close { margin-top: 12px; }
+
+.badge { display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid #334155; background:#0b1020; font-size:.8rem; }
 </style>
 </head>
 <body>
 <header>
   <h1>Gann Master Wheel</h1>
+  <div class="toolbar">
+    <button id="teachBtn" class="pill">Teaching Mode</button>
+    <button id="soundBtn" class="pill">Sound: Off</button>
+  </div>
 </header>
 
-<div class="card wheel-card" style="position:relative">
-  <canvas id="wheel"></canvas>
-  <div id="overlayText" style="position:absolute;top:10px;left:10px;font-size:14px;"></div>
+<main>
+  <!-- Inputs -->
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>High (P_high)</label>
+        <input id="pHigh" type="number" step="0.0001" placeholder="e.g., 3438.84" />
+      </div>
+      <div>
+        <label>Low (P_low)</label>
+        <input id="pLow" type="number" step="0.0001" placeholder="e.g., 3295.00" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Bars (ΔT)</label>
+        <input id="bars" type="number" step="1" placeholder="e.g., 66" />
+      </div>
+      <div>
+        <label>k (harmonic divisor)</label>
+        <input id="k" type="number" value="12" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Price Harmonic Rₚ</label>
+        <input id="hp" type="number" value="144" />
+      </div>
+      <div>
+        <label>Time Harmonic Rₜ</label>
+        <input id="ht" type="number" value="225" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Price Tol (°)</label>
+        <input id="priceTol" type="number" value="3" />
+      </div>
+      <div>
+        <label>Time Tol (°)</label>
+        <input id="timeTol" type="number" value="3" />
+      </div>
+    </div>
+
+    <div class="controls" style="margin-top:8px">
+      <button id="scanBtn" class="primary">Scan & Calculate</button>
+      <button id="clearBtn" class="ghost">Clear</button>
+    </div>
+
+    <div class="badge" style="margin-top:8px">
+      ΔP = Rₚ × sin((√P_high − √P_low)·180°), ΔT = Rₜ × cos(√bars·180°), Time snap = 360/k, SO9: (√P ± rotations)².
+    </div>
+  </div>
+
+  <!-- Date + mode -->
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <div>
+        <div id="dateBar">
+          <button id="minus30">-30d</button><button id="minus7">-7d</button><button id="minus1">-1d</button>
+          <input id="datePick" type="date" style="width:10.5rem; display:inline-block" />
+          <button id="plus1">+1d</button><button id="plus7">+7d</button><button id="plus30">+30d</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <select id="jumpCycle">
+          <option value="">Jump cycle…</option>
+          <option value="90">+90d</option>
+          <option value="144">+144d</option>
+          <option value="225">+225d</option>
+        </select>
+        <select id="mode">
+          <option value="auto">Auto Detect</option>
+          <option value="single">Single Planet</option>
+          <option value="beat">Two-Planet Beat</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="card"><div id="status" class="status">Awaiting input…</div></div>
+
+  <!-- Wheel -->
+  <div class="card wheel-card">
+    <canvas id="wheel"></canvas>
+    <div id="overlayText" class="overlay"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="card">
+    <h3 style="margin:0 0 8px 0">Results</h3>
+    <pre id="out">Enter values and tap Scan & Calculate.</pre>
+  </div>
+</main>
+
+<!-- Teaching Mode (full screen) -->
+<div id="fs" class="fs">
+  <div class="fsHead">
+    <div class="pill">Teaching Mode</div>
+    <div style="display:flex; gap:8px">
+      <button id="helpBtn" class="pill">?</button>
+      <button id="fsClose" class="pill">Close</button>
+    </div>
+  </div>
+  <div class="fsBody">
+    <canvas id="fsWheel"></canvas>
+  </div>
+  <div id="fsOverlay" style="text-align:center; padding:8px; font-size:.95rem"></div>
 </div>
 
-<div>
-  <button id="scanBtn">Scan & Calculate</button>
-  <button id="teachBtn">Teaching Mode</button>
-</div>
-
-<div id="status"></div>
-<div id="targets"></div>
-
-<div id="fs">
-  <canvas id="fsWheel"></canvas>
-  <div id="fsOverlay" style="margin-top:10px;"></div>
-  <button id="fsClose">Close</button>
-  <button id="helpBtn">?</button>
-</div>
-
-<div id="helpOverlay">
-  <h2>How to Use</h2>
-  <ul>
-    <li><b>Glow:</b> Price angle aligns with planet's vibration</li>
-    <li><b>PASS:</b> Price & time both align (square-out)</li>
-    <li><b>Spin:</b> Drag wheel to find alignments</li>
-    <li>Targets update instantly on hit</li>
-  </ul>
-  <button id="closeHelp">Got it</button>
+<!-- Help Overlay -->
+<div id="help" class="help">
+  <div class="panel">
+    <h2>How the Wheel Works</h2>
+    <ul>
+      <li><b>Glow</b> = Price angle resonates with a planet’s degree (within tolerance).</li>
+      <li><b>PASS</b> = Price & Time square-out (both within tolerance). You’ll feel a tap + hear a blip.</li>
+      <li><b>Spin</b> = Drag the wheel to “scan vibration.” Targets update live on hits.</li>
+      <li><b>Targets</b> show projected price/time using your Rₚ/Rₜ and Square-of-9 rotation.</li>
+    </ul>
+    <button id="helpClose" class="pill close">Got it</button>
+  </div>
 </div>
 
 <script>
-// State
-const state = { rot: 0, priceTol: 3, timeTol: 3, planets: {}, hits: [] };
+/* ======== Utilities ======== */
+const $ = id => document.getElementById(id);
+const mod360 = d => ((d % 360) + 360) % 360;
+const angDiff = (a, b) => { let d = Math.abs(mod360(a) - mod360(b)); return d > 180 ? 360 - d : d; };
+const fmt = n => Number(n).toLocaleString(undefined, { maximumFractionDigits: 8 });
+const todayISO = () => new Date().toISOString().slice(0,10);
 
-// Helpers
-function $(id){ return document.getElementById(id); }
-function angDiff(a,b){ return Math.abs(((a-b+180)%360)-180); }
+/* ======== Sound & Haptics ======== */
+let audioCtx = null, humOsc = null;
+$('soundBtn').addEventListener('click', () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (humOsc) { humOsc.stop(); humOsc.disconnect(); humOsc = null; $('soundBtn').textContent = 'Sound: Off'; return; }
+  humOsc = audioCtx.createOscillator();
+  const g = audioCtx.createGain(); g.gain.value = 0.02;
+  humOsc.type = 'sine'; humOsc.frequency.value = 110;
+  humOsc.connect(g).connect(audioCtx.destination); humOsc.start();
+  $('soundBtn').textContent = 'Sound: On';
+});
+function blip(){
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'triangle'; o.frequency.value = 660; g.gain.value = 0.1;
+  o.connect(g).connect(audioCtx.destination); o.start(); setTimeout(()=>o.stop(), 120);
+}
+function haptic(ms=20){ if (navigator.vibrate) navigator.vibrate(ms); }
+
+/* ======== Ephemeris JSON ======== */
+let EPHE = null;
+async function loadEphe(){
+  try {
+    const res = await fetch('./ephe/ephemeris.json', { cache: 'no-store' });
+    EPHE = await res.json();
+  } catch (e) {
+    console.warn('Ephemeris load failed. Using fallback sample.');
+    EPHE = { "2025-08-12": { "Sun": 139.2, "Mercury": 155.0, "Venus": 154.5, "Mars": 70.1, "Jupiter": 45.8, "Saturn": 345.2, "Uranus": 55.3, "Neptune": 354.7, "Pluto": 296.4 } };
+  }
+}
+function getLongitudes(isoDate){
+  if (EPHE[isoDate]) return EPHE[isoDate];
+  const keys = Object.keys(EPHE).sort(); if (!keys.length) return {};
+  const target = new Date(isoDate).getTime();
+  let bestKey = keys[0], best = Infinity;
+  for (const k of keys){
+    const d = Math.abs(new Date(k).getTime() - target);
+    if (d < best) { best = d; bestKey = k; }
+  }
+  return EPHE[bestKey] || {};
+}
+
+/* ======== Gann Math ======== */
+const priceAngle = (pH,pL)=> mod360((Math.sqrt(pH) - Math.sqrt(pL)) * 180);
+const timeAngle  = (bars)=> mod360(Math.sqrt(Math.max(0, bars || 0)) * 180);
+const so9Target  = (p0, rot)=> { const r = Math.sqrt(p0) + rot; return r * r; };
+
+/* ======== Canvas Sizing (Hi-DPI) ======== */
 function sizeCanvas(c, px){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
   c.width = Math.round(px * dpr);
@@ -141,105 +287,301 @@ function sizeCanvas(c, px){
   c.style.width = px + 'px';
   c.style.height = px + 'px';
 }
-
-// Draw wheel
-function drawWheel(c, { rot, planets, pAngle, tAngle, align }){
-  const ctx = c.getContext('2d');
-  const r = c.width/2;
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx.save();
-  ctx.translate(r,r);
-  ctx.rotate(rot*Math.PI/180);
-  ctx.strokeStyle = '#666';
-  for(let i=0;i<360;i+=30){
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(r*Math.cos(i*Math.PI/180), r*Math.sin(i*Math.PI/180));
-    ctx.stroke();
-  }
-  // planets
-  if(planets){
-    for(const [nm,deg] of Object.entries(planets)){
-      const hit = align.hits.includes(nm);
-      ctx.beginPath();
-      ctx.arc(r*0.9*Math.cos(deg*Math.PI/180), r*0.9*Math.sin(deg*Math.PI/180), hit?6:4, 0, Math.PI*2);
-      ctx.fillStyle = hit ? 'yellow' : '#0ff';
-      ctx.fill();
-    }
-  }
-  ctx.restore();
-}
-
-// Fake scan for demo (replace with your ephemeris logic)
-function doScan(){
-  // Example: price angle 45, time angle 90, planets at random
-  state.pAngle = 45;
-  state.tAngle = 90;
-  state.planets = { Sun: 42, Moon: 190, Mars: 88 };
-  state.hits = [];
-  for(const [nm,deg] of Object.entries(state.planets)){
-    if(angDiff(state.pAngle, deg) <= state.priceTol) state.hits.push(nm);
-  }
-  const pricePass = state.hits.length>0;
-  const timePass = angDiff(state.tAngle, 90) <= state.timeTol; // Example logic
-  const pass = pricePass && timePass;
-  $('status').textContent = pass ? 'PASS' : 'FAIL';
-  $('status').className = pass ? 'passPulse' : '';
-  $('targets').innerHTML = state.hits.map(nm=>`${nm}: Price ${state.pAngle+100}, Time ${state.tAngle+10}`).join('<br>');
-  render();
-}
-
-function render(){
-  drawWheel($('wheel'), { rot: state.rot, planets: state.planets, pAngle: state.pAngle||0, tAngle: state.tAngle||0, align: { pass: $('status').textContent==='PASS', hits: state.hits || [] } });
-}
-function renderFS(){
-  drawWheel($('fsWheel'), { rot: state.rot, planets: state.planets, pAngle: state.pAngle||0, tAngle: state.tAngle||0, align: { pass: $('status').textContent==='PASS', hits: state.hits || [] } });
-  $('fsOverlay').textContent = $('targets').innerHTML;
-}
-
-// Spin interaction
-let spinning = false, lastY = 0;
-$('fsWheel').addEventListener('touchstart', e=>{
-  spinning = true;
-  lastY = e.touches[0].clientY;
-});
-$('fsWheel').addEventListener('touchmove', e=>{
-  if(spinning){
-    const dy = e.touches[0].clientY - lastY;
-    lastY = e.touches[0].clientY;
-    state.rot += dy * 0.5;
-    renderFS();
-    // Update live hits
-    doScan();
-  }
-});
-$('fsWheel').addEventListener('touchend', ()=> spinning=false);
-
-// Buttons
-$('scanBtn').onclick = doScan;
-$('teachBtn').onclick = ()=> { $('fs').style.display='flex'; renderFS(); };
-$('fsClose').onclick = ()=> { $('fs').style.display='none'; };
-$('helpBtn').onclick = ()=> { $('helpOverlay').style.display='block'; };
-$('closeHelp').onclick = ()=> { $('helpOverlay').style.display='none'; };
-
-// Init sizing
 function resizeCanvases(){
   const pad = 24;
   const wheelPx = Math.min(window.innerWidth - pad*2, 560);
   sizeCanvas($('wheel'), wheelPx);
   const fsPx = Math.min(window.innerWidth, window.innerHeight) - 24;
   sizeCanvas($('fsWheel'), Math.max(240, fsPx));
-  render();
+  render(); renderFS();
 }
 window.addEventListener('resize', resizeCanvases);
-resizeCanvases();
-</script>
 
-<script>
-// PWA service worker registration
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').then(()=>console.log('SW registered'));
+/* ======== Drawing ======== */
+function drawWheel(canvas, cfg){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
+  const R = Math.min(W,H)/2 - 12;
+  ctx.clearRect(0,0,W,H);
+
+  // cosmic disc
+  const g = ctx.createRadialGradient(cx, cy, R*0.15, cx, cy, R);
+  g.addColorStop(0, '#0b1020'); g.addColorStop(1, '#060912');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fill();
+
+  // rotate scene
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(cfg.rot*Math.PI/180);
+
+  // cardinal cross
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1.3;
+  for(const d of [0,90,180,270]){
+    const rad = d*Math.PI/180;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R*Math.cos(rad), R*Math.sin(rad)); ctx.stroke();
+  }
+
+  // minor spokes
+  ctx.strokeStyle='#1f2937'; ctx.lineWidth=.8;
+  for(let d=0; d<360; d+=30){
+    const rad=d*Math.PI/180; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R*Math.cos(rad), R*Math.sin(rad)); ctx.stroke();
+  }
+
+  // planets
+  const colors = { Sun:'#ffe08a', Mercury:'#86efac', Venus:'#f9a8d4', Mars:'#fca5a5', Jupiter:'#93c5fd', Saturn:'#ddd6fe', Uranus:'#a7f3d0', Neptune:'#bae6fd', Pluto:'#c4b5fd' };
+  const hits = new Set(cfg.align?.hits || []);
+  for(const [name,deg] of Object.entries(cfg.planets || {})){
+    const rad = deg*Math.PI/180; const x = (R-10)*Math.cos(rad), y=(R-10)*Math.sin(rad);
+    ctx.fillStyle = colors[name] || '#e5e7eb';
+    ctx.beginPath(); ctx.arc(x,y, hits.has(name)?6:4, 0, Math.PI*2); ctx.fill();
+    if(hits.has(name)){ // glow ring
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(x,y, hits.has(name)?9:6, 0, Math.PI*2); ctx.stroke();
+    }
+  }
+
+  // needles
+  const pn = cfg.pAngle*Math.PI/180, tn = cfg.tAngle*Math.PI/180;
+  ctx.strokeStyle='#fbbf24'; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R*Math.cos(pn), R*Math.sin(pn)); ctx.stroke();
+  ctx.strokeStyle='#60a5fa'; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R*Math.cos(tn), R*Math.sin(tn)); ctx.stroke();
+
+  // pass ring
+  ctx.restore();
+  if(cfg.align?.pass){
+    ctx.strokeStyle='#22c55e'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx,cy,R-4,0,Math.PI*2); ctx.stroke();
+  }
 }
+
+/* ======== Spin (drag + momentum) ======== */
+function makeSpinnable(canvas, state, onChange){
+  let dragging=false, lastA=0, vel=0, raf=null;
+  function getAngle(e){
+    const r = canvas.getBoundingClientRect();
+    const x = (e.touches?e.touches[0].clientX:e.clientX) - (r.left + r.width/2);
+    const y = (e.touches?e.touches[0].clientY:e.clientY) - (r.top + r.height/2);
+    return Math.atan2(y,x)*180/Math.PI;
+  }
+  function onDown(e){ dragging=true; lastA=getAngle(e); vel=0; e.preventDefault(); }
+  function onMove(e){ if(!dragging) return; const a=getAngle(e); let da=a-lastA; lastA=a; state.rot=mod360(state.rot+da); vel=da; onChange(); }
+  function onUp(){ dragging=false; }
+  function animate(){ if(Math.abs(vel)>0.1){ state.rot=mod360(state.rot+vel); vel*=0.97; onChange(); } raf=requestAnimationFrame(animate); }
+  canvas.addEventListener('mousedown',onDown); canvas.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp);
+  canvas.addEventListener('touchstart',onDown,{passive:false}); canvas.addEventListener('touchmove',onMove,{passive:false}); window.addEventListener('touchend',onUp);
+  raf=requestAnimationFrame(animate);
+  return ()=>cancelAnimationFrame(raf);
+}
+
+/* ======== App State ======== */
+const state = {
+  date: todayISO(),
+  pH:null, pL:null, bars:null,
+  k:12, hp:144, ht:225, priceTol:3, timeTol:3,
+  mode:'auto',
+  rot:0,
+  planets:{},
+  pAngle:0, tAngle:0,
+  hits:[]
+};
+
+/* ======== Wiring ======== */
+$('datePick').value = todayISO();
+for (const [id,delta] of Object.entries({minus30:-30, minus7:-7, minus1:-1, plus1:1, plus7:7, plus30:30})) {
+  $(id).addEventListener('click', ()=>{
+    const d=new Date(state.date); d.setDate(d.getDate()+delta);
+    setDateISO(d.toISOString().slice(0,10));
+  });
+}
+$('jumpCycle').addEventListener('change', e=>{
+  const v = Number(e.target.value||0); if(!v) return;
+  const d=new Date(state.date); d.setDate(d.getDate()+v);
+  setDateISO(d.toISOString().slice(0,10)); e.target.value='';
+});
+$('datePick').addEventListener('change', e=> setDateISO(e.target.value));
+$('mode').addEventListener('change', e=> state.mode = e.target.value);
+$('clearBtn').addEventListener('click', ()=>{
+  ['pHigh','pLow','bars'].forEach(id=>$(id).value='');
+  setStatus('Awaiting input…'); state.pH=state.pL=state.bars=null; state.pAngle=state.tAngle=0; state.hits=[];
+  render(); renderFS(); $('out').textContent = 'Cleared.';
+});
+
+$('teachBtn').addEventListener('click', ()=>{ $('fs').style.display='flex'; resizeCanvases(); });
+$('fsClose').addEventListener('click', ()=>{ $('fs').style.display='none'; });
+
+$('helpBtn').addEventListener('click', ()=> $('help').style.display='block');
+$('helpClose').addEventListener('click', ()=> $('help').style.display='none');
+
+$('scanBtn').addEventListener('click', scanCalc);
+
+const wheel = $('wheel'), fsWheel = $('fsWheel');
+makeSpinnable(wheel, state, onSpinChange);
+makeSpinnable(fsWheel, state, onSpinChange);
+
+/* ======== Date / Status / Render ======== */
+function setDateISO(iso){
+  state.date = iso; $('datePick').value = iso;
+  state.planets = getLongitudes(iso);
+  render(); renderFS();
+}
+function setStatus(text, pass=null){
+  const el=$('status'); el.textContent=text;
+  el.className='status' + (pass===true?' pass passPulse': pass===false?' fail':'');
+}
+
+/* ======== Core calc ======== */
+function scanCalc(){
+  const pH = Number($('pHigh').value), pL = Number($('pLow').value), bars = Number($('bars').value);
+  if (!pH || !pL) { setStatus('Enter High and Low.', false); return; }
+  state.pH = pH; state.pL = pL; state.bars = bars||0;
+
+  state.k  = Number($('k').value||12);
+  state.hp = Number($('hp').value||144);
+  state.ht = Number($('ht').value||225);
+  state.priceTol = Number($('priceTol').value||3);
+  state.timeTol  = Number($('timeTol').value||3);
+
+  // Recompute angles
+  state.pAngle = priceAngle(state.pH, state.pL);
+  state.tAngle = timeAngle(state.bars);
+
+  const { activeMode, activeAngle, info } = chooseActiveAngle(state);
+  const tSnap = kSnap(state.tAngle, state.k);
+
+  const pricePass = angDiff(state.pAngle, activeAngle) <= state.priceTol;
+  const timePass  = angDiff(state.tAngle, tSnap) <= state.timeTol;
+  const pass = pricePass && timePass;
+
+  // Projections
+  const dP = state.hp * Math.sin(activeAngle*Math.PI/180);
+  const dT = state.ht * Math.cos(tSnap*Math.PI/180);
+  const longT  = state.pL + Math.abs(dP);
+  const shortT = state.pH - Math.abs(dP);
+
+  const rotations = (state.tAngle/360);
+  const so9Up   = so9Target(state.pL, rotations);
+  const so9Down = so9Target(state.pH,-rotations);
+
+  // hits for glow
+  state.hits = [];
+  for (const [nm,deg] of Object.entries(state.planets||{})) {
+    if (angDiff(state.pAngle, deg) <= state.priceTol) state.hits.push(nm);
+  }
+
+  setStatus(pass ? 'PASS — Vibration aligned' : 'FAIL — Check tolerances', pass);
+  if (pass) { haptic(28); blip(); }
+
+  $('overlayText').textContent = pass
+    ? 'Square-Out! Price & Time resonating.'
+    : 'No square-out yet — adjust k/tolerance or date.';
+
+  const lines = [];
+  lines.push(`Date: ${state.date}`);
+  lines.push(`Mode: ${activeMode.toUpperCase()}  Active: ${info}`);
+  lines.push(`Angles: Price=${fmt(state.pAngle)}°  Time=${fmt(state.tAngle)}°  → TimeSnap=${fmt(tSnap)}°`);
+  lines.push(`ΔP = ${fmt(dP)}  ΔT = ${fmt(dT)}`);
+  lines.push(`Targets → Long: ${fmt(longT)}  Short: ${fmt(shortT)}`);
+  lines.push(`SO9 → Up from Low: ${fmt(so9Up)}  Down from High: ${fmt(so9Down)}`);
+  $('out').textContent = lines.join('\n');
+
+  render(); renderFS();
+}
+
+// Auto calc while spinning (teaching mode)
+function onSpinChange(){
+  // If user hasn't entered inputs yet, just re-render visuals
+  if (!state.pH || !state.pL) { render(); renderFS(); return; }
+
+  // recompute using current inputs + date
+  // price/time angles stay same (based on inputs/bars), but we re-evaluate hits and targets live
+  const { activeMode, activeAngle, info } = chooseActiveAngle(state);
+  const tSnap = kSnap(state.tAngle, state.k);
+
+  // live hits
+  state.hits = [];
+  for (const [nm,deg] of Object.entries(state.planets||{})) {
+    if (angDiff(state.pAngle, deg) <= state.priceTol) state.hits.push(nm);
+  }
+
+  const pricePass = angDiff(state.pAngle, activeAngle) <= state.priceTol;
+  const timePass  = angDiff(state.tAngle, tSnap) <= state.timeTol;
+  const pass = pricePass && timePass;
+
+  // targets live
+  const dP = state.hp * Math.sin(activeAngle*Math.PI/180);
+  const longT  = state.pL + Math.abs(dP);
+  const shortT = state.pH - Math.abs(dP);
+
+  setStatus(pass ? 'PASS — Vibration aligned' : 'Scanning…', pass ? true : null);
+  if (pass) { $('overlayText').textContent = 'Square-Out!'; } else { $('overlayText').textContent = ''; }
+
+  $('fsOverlay').textContent =
+    `${pass?'PASS — ':''}${activeMode.toUpperCase()}  ${info}\nTargets → Long: ${fmt(longT)}  Short: ${fmt(shortT)}`;
+
+  render(); renderFS();
+}
+
+/* ======== Helpers ======== */
+function chooseActiveAngle(st){
+  const pls = st.planets || {};
+  const names = Object.keys(pls);
+  let bestSingle=null, bestBeat=null;
+  for (const nm of names){
+    const lon = pls[nm]; const diff = angDiff(st.pAngle, lon);
+    if(!bestSingle || diff < bestSingle.diff) bestSingle = { name:nm, angle:lon, diff };
+  }
+  for (let i=0;i<names.length;i++){
+    for(let j=i+1;j<names.length;j++){
+      const a=pls[names[i]], b=pls[names[j]];
+      const beat = mod360(b - a);
+      const diff = angDiff(st.pAngle, beat);
+      if(!bestBeat || diff < bestBeat.diff) bestBeat = { names:[names[i],names[j]], angle:beat, diff };
+    }
+  }
+  let activeMode = st.mode, activeAngle = st.pAngle, info = '';
+  if (st.mode === 'auto'){
+    if (bestBeat && (!bestSingle || bestBeat.diff < bestSingle.diff)){
+      activeMode = 'beat'; activeAngle = bestBeat.angle; info = `Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`;
+    } else {
+      activeMode = 'single'; activeAngle = bestSingle.angle; info = `${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`;
+    }
+  } else if (st.mode === 'single'){ activeAngle = bestSingle.angle; info = `${bestSingle.name} @ ${fmt(activeAngle)}° (Δ=${fmt(bestSingle.diff)}°)`; }
+  else if (st.mode === 'beat'){ activeAngle = bestBeat.angle; info = `Beat ${bestBeat.names.join('–')} @ ${fmt(activeAngle)}° (Δ=${fmt(bestBeat.diff)}°)`; }
+  return { activeMode, activeAngle, info };
+}
+function kSnap(angle, k){ const sector = 360/Math.max(1,k||12); return Math.round(angle/sector)*sector; }
+
+/* ======== Init ======== */
+(async function init(){
+  await loadEphe();
+  setDateISO(todayISO());
+
+  // If inputs are present, precompute angles so spin shows live targets
+  function refreshAnglesIfInputs(){
+    const pH = Number($('pHigh').value), pL = Number($('pLow').value), bars = Number($('bars').value);
+    if (pH && pL) {
+      state.pH=pH; state.pL=pL; state.bars=bars||0;
+      state.k  = Number($('k').value||12);
+      state.hp = Number($('hp').value||144);
+      state.ht = Number($('ht').value||225);
+      state.priceTol = Number($('priceTol').value||3);
+      state.timeTol  = Number($('timeTol').value||3);
+      state.pAngle = priceAngle(state.pH, state.pL);
+      state.tAngle = timeAngle(state.bars);
+    }
+  }
+  ['pHigh','pLow','bars','k','hp','ht','priceTol','timeTol'].forEach(id=>{
+    $(id).addEventListener('input', ()=>{ refreshAnglesIfInputs(); onSpinChange(); });
+  });
+
+  // startup spin for vibe
+  resizeCanvases();
+  let t=0; (function spinIn(){ if(t<180){ state.rot+=1.5; render(); renderFS(); t++; requestAnimationFrame(spinIn);} })();
+
+  // register SW
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+})();
+function render(){ drawWheel($('wheel'), { rot: state.rot, planets: state.planets, pAngle: state.pAngle||0, tAngle: state.tAngle||0, align:{ pass: $('status').classList.contains('pass'), hits: state.hits || [] } }); }
+function renderFS(){ drawWheel($('fsWheel'), { rot: state.rot, planets: state.planets, pAngle: state.pAngle||0, tAngle: state.tAngle||0, align:{ pass: $('status').classList.contains('pass'), hits: state.hits || [] } }); }
 </script>
 </body>
 </html>
